@@ -8,7 +8,7 @@ banner() {
 "********"
 "* $1"
 "********"
-
+}
 
 banner "mount /dev/sda1"
 mount /dev/sda1 $TARGET
@@ -47,7 +47,7 @@ tar -xzvf modules.tgz --directory $TARGET/.
 
 
 if [ -f apt_get_packages ] ; then
-    banner " transfer apt_get_packages"
+   banner " transfer apt_get_packages"
    cp apt_get_packages   $TARGET/root/.
 fi
 

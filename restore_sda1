@@ -1,14 +1,33 @@
 #!/bin/bash
 
+# This script expects a usb stick with two partitions.
+#  Partition 1  the working Partition
+#  Partition 2  the recover/safe boot partion.
+#  
+#  you should find this script along with rootfs.b2z, 
+#         Image.tgz, and lib.tgz
+#
+#  this script mounts the first partition and installs 
+#  the rootfs, and other files in directory to the first
+#  Partition. 
 
 TARGET=/mnt
- 
+
 banner() {
-""
-"********"
-"* $1"
-"********"
+        echo ""
+        echo "******"
+        echo "* $1 "
+        echo "******"
 }
+
+if [ ! -f image.tgz ] || [ ! -f lib.tgz ] || [ ! -f rootfs.b2z ]
+then
+   banner " missing the files necessary to restore /dev/sda1 "
+   exit 1
+fi
+
+
+
 
 banner "mount /dev/sda1"
 mount /dev/sda1 $TARGET

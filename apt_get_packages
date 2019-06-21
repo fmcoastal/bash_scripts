@@ -1,5 +1,32 @@
+#!/bin/bash
+
+
+#################################
+# Editing and search Items:
+#################################
 apt-get install vim
+if [ ! -f  /home/fsmith/.vimrc ]
+then
+   echo "set nu" >/home/fsmith/.vimrc
+   echo "set mu" >>/home/fsmith/.vimrc
+   echo "syntax on" >>/home/fsmith/.vimrc
+fi
+
+apt-get install git -y
+git config --global user.name "Frank Smith"
+git config --global user.email fsmith@cavium.com
+git config --global core.editor vim
+git config --global --add color.ui true
+git config --global format.pretty oneline
+
+apt-get install cscope
+
+#################################
+# Network Items:
+#################################
+apt-get install ntp
 apt-get install tcpdump
+apt-get install ethtool
 apt-get install openssh-server
 #
 # vim /etc/ssh/
@@ -13,3 +40,40 @@ apt-get install openssh-server
 #    ClientAliveCountMax 600
 # systemctl restart sshd
 #
+apt-get install nfs-client -y
+apt-get install ipsec-tools -y
+apt-get install tftpd-hpa  -y
+
+apt-get install openssl
+apt-get install ssh
+apt-get install sshd-server
+apt-get install net-tools
+apt-get install nds-client
+
+
+#################################
+# Disk/Storage  Items:
+#################################
+apt-get install alien -y
+apt-get install gdisk -y
+apt-get install gparted -y
+apt-get install xz-utils -y
+
+
+
+
+#################################
+# Compiling Code  Items:
+#################################
+INC_KERNEL_ITEMS=0
+if [ $INC_KERNEL_ITEMS == 1 ] ; then
+
+   apt-get install libncurses-dev -y
+   apt-get install fakeroot -y
+   apt-get install build-essential -y
+
+   apt-get build-dep linux-image-$(uname -r) -y
+   apt-get install linux-headers-$(uname -r) -y
+   apt-get install kernel-package -y
+fi
+

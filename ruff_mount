@@ -1,0 +1,67 @@
+#!bin/bash
+
+IP=10.11.70.12
+
+RED=$'\e[31m'
+GREEN=$'\e[32m'
+YELLOW=$'\e[33m'
+BLUE=$'\e[34m'
+MAGENTA=$'\e[35m'
+CYAN=$'\e[36m'
+WHITE=$'\e[37m'
+
+
+NORMAL=$'\e[0m'
+BOLD=$'\e[1m'
+UNDERLINE=$'\e[4m'
+BLINK=$'\e[5m'
+INVERT=$'\e[7m'
+
+
+banner(){
+echo "************************"
+echo "**  $1"
+echo "************************"
+}
+
+if [ ! -d "/scripts" ] ; then
+
+   echo " please create a /scripts directory at the / level"
+   exit 1
+fi
+
+if [ ! -d "/sdk" ] ; then
+
+   echo " please create a /sdk directory at the / level"
+   exit 1
+fi
+
+
+SDK_MOUNT=$(mount |grep -i sdk)
+SCRIPTS_MOUNT=$(mount |grep -i scripts)
+
+
+if [ "$SDK_MOUNT" == "" ] && [ "$SCRIPTS_MOUNT" == "" ] ; then
+
+  echo $GREEN
+  banner " mount the directories"	
+  mount -t nfs $IP:/sdk     /sdk
+  mount -t nfs $IP:/scripts /scripts
+
+
+else
+
+  echo $RED
+  banner "unmount the directories"	
+  umount /sdk
+  umount /scripts
+
+fi
+
+echo $WHITE
+OUT=$(mount |grep -i sdk)
+echo  $OUT
+OUT=$(mount |grep -i scripts)
+echo  $OUT
+
+

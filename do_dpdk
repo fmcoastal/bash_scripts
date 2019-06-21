@@ -1,0 +1,20 @@
+mount -t hugetlbfs nodev /mnt/huge
+echo   4096 > /proc/sys/vm/nr_hugepages
+cat /proc/meminfo|grep Huge
+sudo su  < EOF
+fsmith
+EOF
+
+lsmod |grep vfio
+modprobe vfio-pci
+lsmod |grep vfio
+
+dpdk-devbind.py --status
+dpdk-devbind.py -u 0000:01:00.0
+dpdk-devbind.py -u 0000:01:00.1
+
+dpdk-devbind.py -b vfio-pci 01:00.0
+dpdk-devbind.py -b vfio-pci 01:00.1
+
+
+

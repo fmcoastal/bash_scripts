@@ -1,0 +1,15 @@
+#!/bin/bash
+
+
+date > start_time
+./scripts/ci/compile.sh -r ga-19.06.1 cn9130
+date > end_time
+
+echo "Started at:"
+cat start_time
+echo "Ended at:"
+cat end_time
+
+echo "Done"
+
+

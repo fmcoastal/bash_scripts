@@ -1,0 +1,132 @@
+#!/bin/bash
+
+
+# below files are  a network connections.  
+# you will transfer each file (ubuntu rootfs) 4 times, consider 
+# modifying the script to copy once, and use the local 
+# copy
+
+BR2_OUTPUT_DIR=cn9130-release-output
+
+UBUNTU_DIR=/sdk/ubuntu_arm_images_ISO
+UBUNTU_ROOTFS=rootfs.b2z
+
+
+SDK_DIR=/sdk/SDK19061
+IMAGE_FILE=image.tgz
+
+LIB_FILE=lib.tgz
+
+
+
+#command line check see - see if the number of arguments is zero
+if [ $# -eq 0 ] ; then
+   echo  "Usage  prep_usb  sdX\n"
+   exit
+fi
+
+
+BLOCK="$1"
+PARTITION_1="$1"1
+PARTITION_2="$1"2
+
+echo ""
+echo "********"
+
+  echo  Block:  $BLOCK
+  echo  First Partition: $PARTITION_1
+  echo  Second Partition: $PARTITION_2
+
+if [ ! -e  /dev/$BLOCK ];then
+   echo "cannot find /dev/$BLOCK  -- Exiting"
+   exit 1
+fi
+
+echo ""
+echo "********"
+echo "* check to see if any part of /dev/$BLOCK is mounted?"
+echo "********"
+CHK_MOUNTED=$(mount |grep -i /dev/$BLOCK)
+
+
+if [ "$CHK_MOUNTED" != "" ];then
+   echo ""
+   echo $CHK_MOUNTED
+   echo " "
+   echo "  the drive looks to be mounted - exiting "
+   exit 1
+fi
+
+
+
+##################################################
+##################################################
+##################################################
+
+mount /dev/$PARTITION_1   /mnt
+
+tar -xvf $UBUNTU_DIR/$UBUNTU_ROOTFS  --directory /mnt
+
+tar -xvf $SDK_DIR/$BR2_OUTPUT_DIR/images/$IMAGE_FILE  --directory /mnt/boot
+
+tar -xvf $SDK_DIR/$BR2_OUTPUT_DIR/images/$LIB_FILE  --directory /mnt/
+
+cp $UBUNTU_DIR/$UBUNTU_ROOTFS             /mnt/root/.
+cp $SDK_DIR/$BR2_OUTPUT_DIR/images/$LIB_FILE     /mnt/root/.
+cp $SDK_DIR/$BR2_OUTPUT_DIR/images/$IMAGE_FILE   /mnt/root/.
+
+
+
+echo "This is the first partion" >/mnt/PARTITON_1
+
+echo "********** /mnt/boot directory *****"
+ls -la /mnt/boot/*
+echo "********** /mnt/lib/modules directory *****"
+ls -la /mnt/lib/modules/*
+echo "********** /mnt directory *****"
+ls  /mnt
+
+
+sync
+
+umount /mnt 
+
+##################################################
+##################################################
+##################################################
+mount /dev/$PARTITION_2   /mnt
+
+
+tar -xvf $UBUNTU_DIR/$UBUNTU_ROOTFS  --directory /mnt
+
+tar -xvf $SDK_DIR/$BR2_OUTPUT_DIR/images/$IMAGE_FILE  --directory /mnt/boot
+
+tar -xvf $SDK_DIR/$BR2_OUTPUT_DIR/images/$LIB_FILE  --directory /mnt/
+
+cp $UBUNTU_DIR/$UBUNTU_ROOTFS             /mnt/root/.
+cp $SDK_DIR/$BR2_OUTPUT_DIR/images/$LIB_FILE     /mnt/root/.
+cp $SDK_DIR/$BR2_OUTPUT_DIR/images/$IMAGE_FILE   /mnt/root/.
+
+
+
+echo "This is the secont partion" >/mnt/PARTITON_2
+
+cp /scratch/restore_sda1  /mnt/root/.
+
+
+echo "********** /mnt/boot directory *****"
+ls -la /mnt/boot/*
+echo "********** /mnt/lib/modules directory *****"
+ls -la /mnt/lib/modules/*
+echo "********** /mnt directory *****"
+ls  /mnt
+
+
+sync
+
+umount /mnt 
+
+echo "done"
+
+
+

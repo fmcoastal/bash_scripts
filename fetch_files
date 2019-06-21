@@ -1,0 +1,32 @@
+#!/bin/bash
+
+
+SRC_BASE_DIR=/sdk/SDK19061/
+
+
+
+DEVICE_DIR=a80x0_mcbin_single_shot-release-output
+#DEVICE_DIR=a80x0_mcbin-release-output
+#DEVICE_DIR=cn83xx-release-output
+#DEVICE_DIR=cn81xx-release-output
+#DEVICE_DIR=cn9130-release-output
+
+IMAGE_FILE=image.tgz
+MODULE_FILE=lib.tgz
+
+
+USE_CP_COMMAND="N"
+
+if [ $USE_CP_COMMAND == "Y" ] ; then
+CMD=cp
+WHERE=
+else
+CMD=scp
+WHERE=fsmith@10.11.70.12:
+fi
+
+
+$CMD $WHERE$SRC_BASE_DIR/$DEVICE_DIR/images/$IMAGE_FILE .
+$CMD $WHERE$SRC_BASE_DIR/$DEVICE_DIR/images/$MODULE_FILE .
+
+

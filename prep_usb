@@ -1,0 +1,179 @@
+#!/bin/bash
+
+
+
+#Sector number of Start and End.
+EFI_PART_UUID=E3AE6975-BACE-464E-91E1-BB4FE9954047
+EFI_PART_ID=1
+EFI_PART_TYPE=EF00
+EFI_PART_SIZE=1G
+
+LINUX_PART_ID=2
+LINUX_PART_TYPE=8300
+
+# Partition commands Based on gdisk verson:
+#[root@hooch SDWAN]# gdisk -v
+#GPT fdisk (gdisk) version 0.8.6
+
+create_partitions_0_8_6()
+{
+gdisk $1 <<EOF
+o
+y
+n
+$EFI_PART_ID
+
+$EFI_PART_SIZE
+$EFI_PART_TYPE
+n
+$LINUX_PART_ID
+
+
+$LINUX_PART_TYPE
+x
+c
+$EFI_PART_ID
+$EFI_PART_UUID
+w
+y
+EOF
+}
+
+
+# previous Revision
+create_partitions()
+{
+gdisk $1 <<EOF
+2
+o
+y
+n
+$EFI_PART_ID
+
+$EFI_PART_SIZE
+$EFI_PART_TYPE
+n
+$LINUX_PART_ID
+
+
+$LINUX_PART_TYPE
+x
+c
+$EFI_PART_ID
+$EFI_PART_UUID
+w
+y
+EOF
+}
+
+
+
+Banner() {
+echo ""
+echo "********"
+echo "* $1"
+echo "********"
+}
+
+
+
+
+#command line check see - see if the number of arguments is zero
+if [ $# -eq 0 ] ; then
+   echo  "Usage  prep_usb  sdX\n"
+   exit
+fi
+
+
+BLOCK="$1"
+PARTITION_1="$1"1
+PARTITION_2="$1"2
+
+echo ""
+echo "********"
+
+  echo  Block:  $BLOCK
+  echo  First Partition: $PARTITION_1
+  echo  Second Partition: $PARTITION_2
+
+if [ ! -e  /dev/$BLOCK ];then
+   echo "cannot find /dev/$BLOCK  -- Exiting"
+   exit 1
+fi
+
+echo ""
+echo "********"
+echo "* check to see if any part of /dev/$BLOCK is mounted?"
+echo "********"
+CHK_MOUNTED=$(mount |grep -i /dev/$BLOCK)
+
+
+if [ "$CHK_MOUNTED" != "" ];then
+   echo ""
+   echo $CHK_MOUNTED
+   echo " "
+   echo "  the drive looks to be mounted - exiting "
+   exit 1
+fi
+
+
+ERASE_COUNT=2
+ERASE_BLOCK=256M
+##############################################
+Banner " zero the partition table of /dev/$BLOCK " 
+echo "dd if=/dev/zero of=/dev/$BLOCK bs=$ERASE_BLOCK count=$ERASE_COUNT"
+ZERO_OUT=$(dd if=/dev/zero of=/dev/$BLOCK bs=$ERASE_BLOCK count=$ERASE_COUNT)
+echo ZERO_OUT
+
+echo "ls /dev/$BLOCK*"
+ls /dev/$BLOCK*
+
+sleep 2
+
+#$FILESYSTEM="UBUNTU"
+$FILESYSTEM="CENTOS"
+##############################################
+Banner " Create two partitions on /dev/$BLOCK " 
+if [ $FILESYSTEM = "CENTOS" ]; then
+  create_partitions_0_8_6 /dev/$BLOCK
+else
+  create_partitions /dev/$BLOCK
+fi
+
+##############################################
+Banner " Format the first Partition $EFI_PART_TYPE  on /dev/$PARTITION_1 " 
+mkfs.vfat -F32 /dev/$PARTITION_1
+
+##############################################
+Banner " Format the Second Partition $LINUX_PART_TYPE on /dev/$PARTITION_2" 
+mkfs.ext4       /dev/$PARTITION_2
+
+##############################################
+Banner " Wait for Sync  on /dev/$BLOCK" 
+sync
+
+
+echo " Done ;-)  " 
+
+# 1006  dd if=/dev/sdb of=sdwan_usd_card.img bs=512M
+# 1007  ls
+# 1008  mkdir sdb1
+# 1009  mkdir sdb2
+# 1010  mkdir sdb3
+# 1011  mount /dev/sdb1 /mnt
+# 1012  cp /mnt/* sdb1/.
+# 1013  sync
+# 1014  umount /mnt
+# 1015  mount /dev/sdb2 /mnt
+# 1016  cp /mnt/* sdb2/.
+# 1017  sync
+# 1018  umount /mnt
+# 1019  mount /dev/sdb3 /mnt
+# 1020  cp /mnt/* sdb3/.
+# 1021  cp -r  /mnt/* sdb3/.
+# 1022  sync
+# 1023  umount /mnt
+# 1024  history
+#[root@gus sdwan]#
+
+ 

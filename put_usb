@@ -1,0 +1,146 @@
+#!/bin/bash
+
+
+#TARGET=DOUBLE_SHOT
+TARGET=SINGLE_SHOT
+#TARGET=a3900
+
+
+
+
+
+BASE_DIR=/sdk/SDK19061
+
+#command line check see - see if the number of arguments is zero
+if [ $# -eq 0 ] ; then
+   echo  "Usage  put_usb  sdXp [X is the device, p is the partiton] \n"
+   exit
+fi
+
+
+if [ $TARGET == "DOUBLE_SHOT" ] ;  then
+
+    OUTPUT_DIR=a80x0_mcbin-release-output
+
+elif  [ $TARGET == "SINGLE_SHOT" ] ;  then
+
+   OUTPUT_DIR=a80x0_mcbin_single_shot-release-output
+
+elif  [ $TARGET == "a3900" ] ;  then
+
+   OUTPUT_DIR=a3900_B-release-output
+else
+   echo " Unrecgonized target!!!"
+   echo " -exiting-"
+   exit 1
+
+fi
+
+
+echo " -----------   WARNING -------------- "
+echo " We will use "
+echo "    sdk:  $BASE_DIR  for $OUTPUT_DIR  "
+echo " ------------------------------------ "
+sleep 5
+
+
+
+banner() {
+echo ""
+echo "********"
+echo "* $1"
+echo "********"
+}
+
+
+
+#***************
+# banner " Must be root from here out "
+usrname=$(whoami)
+if [ $usrname != "root" ] ; then
+   echo "Need to be root.  Exiting script"
+   exit 1
+fi
+
+
+
+#***************
+# banner " validate $PARTITION is present. "
+PARTITION="$1"
+echo ""
+echo "********"
+
+if [ ! -e  /dev/$PARTITION ];then
+   echo "cannot find /dev/$PARTITION  -- Exiting"
+   exit 1
+fi
+
+echo ""
+echo "********"
+echo "* check to see if any part of /dev/$PARTITION is mounted?"
+echo "********"
+CHK_MOUNTED=$(mount |grep -i /dev/$PARTITION)
+
+
+if [ "$CHK_MOUNTED" != "" ];then
+   echo ""
+   echo $CHK_MOUNTED
+   echo " "
+   echo "  the drive looks to be mounted - exiting "
+   exit 1
+fi
+
+
+
+TEMP_DIR=fs_temp
+
+
+#*********************
+# will run this at my current location
+banner "create $TEMP_DIR directory"
+mkdir -p $TEMP_DIR
+
+
+#************************
+banner "mount /dev/$PARTITION to $PWD/$TEMP_DIR"
+mount /dev/$PARTITION  ./$TEMP_DIR
+# mask sure the mount completes???
+sync
+
+banner " untar image.tgz to ./$TEMP_DIR/boot/."
+tar -xzvf image.tgz --directory ./$TEMP_DIR/boot/.
+
+banner " copy image.tgz  to ./$TEMP_DIR/boot/."
+cp image.tgz ./$TEMP_DIR/boot/.
+
+banner "md5sum of /boot directory:"
+md5sum  ./$TEMP_DIR/boot/*
+
+
+
+banner " untar lib.tgz to ./$TEMP_DIR/."
+tar -xzvf lib.tgz --directory ./$TEMP_DIR/.
+
+cp lib.tgz ./$TEMP_DIR/.
+
+banner "md5sum of /lib.tgz"
+md5sum  ./$TEMP_DIR/lib.tgz
+
+banner "contents of /lib/modules:"
+ls -la  ./$TEMP_DIR/lib/modules/*
+
+
+#**************************
+banner "unmount $TEMP_DIR"
+umount $TEMP_DIR
+
+
+#*********************
+banner "remove $TEMP_DIR"
+rm -rf $TEMP_DIR
+
+echo ""
+echo "- Done!!!"
+echo ""
+
+

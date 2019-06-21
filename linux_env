@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# this script sets the enviorment variables need to build the linux kernel
+# from the linux kernel directory, for the ARM envionment
+
+# set Enviornment
+ export ARCH=arm64
+
+
+# pick your tool chain
+
+# export CROSS_COMPILE=/home/fsmith/8040/tools/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+
+export CROSS_COMPILE=/sdk/SDK106/toolchain/marvell-tools-215/bin/aarch64-marvell-linux-gnu-
+
+
+echo " ARCH set to $ARCH "
+echo " CROSS_COMPILE  set to $CROSS_COMPILE "
+echo " Done :-) "
+

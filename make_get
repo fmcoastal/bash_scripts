@@ -1,0 +1,49 @@
+#!/bin/bash
+
+
+FILENAME=get
+U_FILENAME="$FILENAME".tar
+C_FILENAME="$FILENAME".tgz
+
+
+if [ -f $C_FILENAME ] ; then
+   echo " Deleting old  $C_FILENAME "
+   rm -rf $C_FILENAME
+fi
+# the uncompressed file should not exist.  delete it if present for now. 
+if [ -f $U_FILENAME ] ; then
+   echo " Deleting old  $U_FILENAME "
+   rm -rf $U_FILENAME
+fi
+
+
+
+echo " "
+echo " Creating $U_FILENAME "
+tar -cvf  $U_FILENAME   x
+
+
+echo " "
+echo " adding files to  $U_FILENAME "
+tar -rvf   $U_FILENAME  get_ubuntu_rootfs
+tar -rvf   $U_FILENAME  get_kernel_and_lib_modules
+tar -rvf   $U_FILENAME  put_usb
+tar -rvf   $U_FILENAME  show_usb
+tar -rvf   $U_FILENAME  install
+tar -rvf   $U_FILENAME  fetch_files
+
+echo " "
+echo " compress the $U_FILENAME  into $C_FILENAME"
+gzip  -c $U_FILENAME  > $C_FILENAME
+
+rm -rf $U_FILENAME
+
+echo " "
+echo " Files Included in  $C_FILENAME : "
+echo " "
+tar -tvf  $C_FILENAME
+
+
+echo " "
+echo "DONE "
+echo " "

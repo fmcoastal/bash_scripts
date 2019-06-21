@@ -1,0 +1,144 @@
+#!/bin/bash
+
+#TARGET=DOUBLE_SHOT
+#TARGET=SINGLE_SHOT
+#TARGET=SINGLE_SHOT
+#TARGET=CN9130
+#TARGET=A3900
+
+######################
+# BASE_DIR is the directory the SDK is installed in.
+
+BASE_DIR=/sdk/SDK19061
+
+
+######################
+#filename created by buildroot process for the root filesystem 
+ROOTFS_FILE=rootfs.tar
+
+######################
+#filename created by script containing Image and .dtb files.
+# the contents of this should be placed in /boot of your filesystem.
+BOOT_FILES=image.tgz
+######################
+#filename created by script containing kernel module  files.
+# the contents of this should be exploded at / in your filesystem
+LIB_FILES=lib.tgz
+
+
+
+TEMP_DIR=temp
+
+
+#################### 
+# Output Manipulations
+BLACK=$'\e[30m'
+RED=$'\e[31m'
+GREEN=$'\e[32m'
+YELLOW=$'\e[33m'
+BLUE=$'\e[34m'
+MAGENTA=$'\e[35m'
+CYAN=$'\e[36m'
+GRAY=$'\e[37m'
+WHITE=$'\e[0m'
+
+NORMAL=$'\e[0m'
+BOLD=$'\e[1m'
+UNDERLINE=$'\e[4m'
+BLINK=$'\e[5m'
+INVERT=$'\e[7m'
+
+#   banner()
+banner() {
+echo ""
+echo "********"
+echo "* $1"
+echo "********"
+}
+
+
+# select the target Directory.
+if [ "$TARGET" == "DOUBLE_SHOT" ] ;  then
+
+    OUTPUT_DIR=a80x0_mcbin-release-output
+
+elif [ "$TARGET" == "SINGLE_SHOT" ] ;  then
+
+    OUTPUT_DIR=a80x0_mcbin_single_shot-release-output
+
+elif [ "$TARGET" == "CN9130" ] ;  then
+
+    OUTPUT_DIR=cn9130-release-output
+
+elif [ "$TARGET" == "CN9130" ] ;  then
+
+   OUTPUT_DIR=a3900_B-release-output
+
+else
+
+   echo $RED
+   echo "\"TARGET\" not defined in Script"
+   echo $WHITE
+   echo "     - please modifiy script"
+   echo "     exiting"
+   exit
+  
+fi
+
+
+
+
+
+echo " -----------   WARNING -------------- "
+echo " We will use "
+echo $GREEN
+echo "    sdk:  $BASE_DIR  for $OUTPUT_DIR  "
+echo $WHITE
+echo " ------------------------------------ "
+sleep 5
+
+
+
+# save where we are :-)
+CURRENT_DIR=$PWD
+
+banner "change directory to $BASE_DIR/$OUTPUT_DIR"
+pushd $BASE_DIR/$OUTPUT_DIR
+
+banner " Remove any Existing $BOOT_FILES / $LIB_FILES "
+if [ -f $BOOT_FILES ] ; then
+   echo " - found old $BOOT_FILES - Removing"
+   rm -rf $BOOT_FILES
+fi
+
+if [ -f $LIB_FILES ] ; then
+   echo " - found old $LIB_FILES - Removing"
+   rm -rf $LIB_FILES
+fi
+
+banner " Create $TEMP_DIR to un-tar $ROOTFS_FILE in "
+mkdir $TEMP_DIR
+
+banner "  Un-tar $ROOTFS_FILE  "
+tar -xvf ./images/$ROOTFS_FILE  --directory $TEMP_DIR
+
+#echo "-------# need to fix why there are duplicate files associted with cp.----------"
+#echo "PWD $PWD"
+#echo "CURRENT_DIR $CURRENT_DIR"
+#echo "BASE_DIR/OUTPUT_DIR  $BASE_DIR/$OUTPUT_DIR"
+#echo "-----------------"
+
+banner "  tar - up  $BOOT_FILES  "
+ tar -czvf $BOOT_FILES --directory  $TEMP_DIR/boot .
+ mv -f  $BOOT_FILES  $CURRENT_DIR/.
+
+banner "  tar - up  $LIB_FILES  "
+ tar -czvf $LIB_FILES --directory $TEMP_DIR  lib/modules/.
+ mv -f $LIB_FILES  $CURRENT_DIR/.
+
+banner "  Remove the temp directory we created  "
+rm -rf $TEMP_DIR
+
+banner " Done  "
+popd
+

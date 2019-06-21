@@ -1,0 +1,15 @@
+apt-get install vim
+apt-get install tcpdump
+apt-get install openssh-server
+#
+# vim /etc/ssh/
+# sed
+#    #PermitRootLogin prohibit-password
+#    PermitRootLogin yes
+#
+#    #ClientAliveInterval 0
+#    ClientAliveInterval 3
+#    #ClientAliveCountMax 3
+#    ClientAliveCountMax 600
+# systemctl restart sshd
+#

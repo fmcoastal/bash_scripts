@@ -1,0 +1,10 @@
+
+
+mount /dev/sda1 /mnt
+
+
+
+umount /mnt
+
+echo "DONE!"
+

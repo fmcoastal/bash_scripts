@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+
+mkdir -p show_dir
+
+mount /dev/sdb1 show_dir
+ls -la  show_dir
+umount show_dir
+
+
+
+mount /dev/sdb2 show_dir
+ls -la show_dir
+umount show_dir
+
+rm -rf show_dir

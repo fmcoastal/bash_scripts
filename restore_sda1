@@ -1,10 +1,60 @@
+#!/bin/bash
 
 
-mount /dev/sda1 /mnt
+TARGET=/mnt
+ 
+banner() {
+""
+"********"
+"* $1"
+"********"
 
 
+banner "mount /dev/sda1"
+mount /dev/sda1 $TARGET
 
-umount /mnt
+
+banner "delete the directories on  /dev/sda1"
+rm -rf $TARGET/boot
+rm -rf  $TARGET/etc
+rm -rf  $TARGET/lib
+rm -rf  $TARGET/mnt
+rm -rf  $TARGET/proc
+rm -rf  $TARGET/sbin
+rm -rf  $TARGET/sys
+rm -rf  $TARGET/usr
+rm -rf  $TARGET/bin
+rm -rf  $TARGET/dev
+rm -rf  $TARGET/home
+rm -rf  $TARGET/media
+rm -rf  $TARGET/opt
+rm -rf  $TARGET/root
+rm -rf  $TARGET/run
+rm -rf  $TARGET/srv
+rm -rf  $TARGET/tmp
+rm -rf  $TARGET/var
+
+
+banner "ls -la $TARGET"
+ls -la $TARGET
+sleep 5
+
+banner "untar the rootfs, kernel, and other Items"
+tar -xjvf rootfs.b2z  --directory $TARGET/.
+tar -xzvf image.tgz   --directory $TARGET/boot/.
+#tar -xzvf lib.tgz    --directory $TARGET/.
+tar -xzvf modules.tgz --directory $TARGET/.
+
+
+if [ -f apt_get_packages ] ; then
+    banner " transfer apt_get_packages"
+   cp apt_get_packages   $TARGET/root/.
+fi
+
+banner "sync and umount $TARGET"
+sync
+umount $TARGET
+
 
 echo "DONE!"
 

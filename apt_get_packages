@@ -40,6 +40,7 @@ apt-get install openssh-server
 #    ClientAliveCountMax 600
 # systemctl restart sshd
 #
+apt-get install curl -y
 apt-get install nfs-client -y
 apt-get install ipsec-tools -y
 apt-get install tftpd-hpa  -y
@@ -50,6 +51,23 @@ apt-get install sshd-server
 apt-get install net-tools
 apt-get install nds-client
 
+
+#For Dockers
+INC_DOCKER_ITEMS=0
+if [ $INC_KERNEL_ITEMS == 1 ] ; then
+  apt-get install gnupg-agent
+  apt-get install software-properties-common
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+#  add-apt-repository \
+#   "deb [arch=arm64] https://download.docker.com/linux/ubuntu \
+#   $(lsb_release -cs) \
+#   stable"
+  add-apt-repository "deb [arch=arm64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+ 
+  apt-get update
+ 
+  apt-get install docker-ce docker-ce-cli containerd.io
+fi
 
 #################################
 # Disk/Storage  Items:

@@ -23,14 +23,38 @@ banner() {
 if [ ! -f image.tgz ] || [ ! -f lib.tgz ] || [ ! -f rootfs.b2z ]
 then
    banner " missing the files necessary to restore /dev/sda1 "
+   if [ ! -f image.tgz ] ; then
+       echo " -- missing image.tgx"
+   fi
+   if [ ! -f lib.tgz ] ; then
+       echo " -- missing image.tgx"
+   fi
+   if [ ! -f rootfs.b2z ] ; then
+       echo " -- missing image.tgx"
+   fi
+ 
    exit 1
 fi
 
+
+MOUNTED_TEST=$(mount | grep  /mnt)
+
+if [ "$MOUNTED_TEST"  != "" ] ; then
+   banner " /mnt is currently mounted - umount and try again"
+   exit 2
+fi
 
 
 
 banner "mount /dev/sda1"
 mount /dev/sda1 $TARGET
+
+MOUNTED_TEST=$(mount | grep  /mnt)
+
+if [ "$MOUNTED_TEST"  == "" ] ; then
+   banner "** failed to mount /dev/sda1"
+   exit 3
+fi
 
 
 banner "delete the directories on  /dev/sda1"
@@ -61,8 +85,8 @@ sleep 5
 banner "untar the rootfs, kernel, and other Items"
 tar -xjvf rootfs.b2z  --directory $TARGET/.
 tar -xzvf image.tgz   --directory $TARGET/boot/.
-#tar -xzvf lib.tgz    --directory $TARGET/.
-tar -xzvf modules.tgz --directory $TARGET/.
+tar -xzvf lib.tgz    --directory $TARGET/.
+#tar -xzvf modules.tgz --directory $TARGET/.
 
 
 if [ -f apt_get_packages ] ; then

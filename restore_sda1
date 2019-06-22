@@ -82,9 +82,11 @@ banner "ls -la $TARGET"
 ls -la $TARGET
 sleep 5
 
-banner "untar the rootfs, kernel, and other Items"
+banner "untar the rootfs "
 tar -xjvf rootfs.b2z  --directory $TARGET/.
+banner "untar the kernel"
 tar -xzvf image.tgz   --directory $TARGET/boot/.
+banner "untar the modules"
 tar -xzvf lib.tgz    --directory $TARGET/.
 #tar -xzvf modules.tgz --directory $TARGET/.
 

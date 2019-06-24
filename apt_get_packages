@@ -1,6 +1,59 @@
 #!/bin/bash
 
 
+######################################################################
+# this function modifies the ssh server configuration.
+#  - allows RootAccess       - PermitRootLogin
+#  - extends Idle Timeout    - ClientAliveInterval/ClientAliveCountMax
+ssh_config_change_config(){
+# vim /etc/ssh/sshd_conf
+
+# save the original File
+cp   sshd_config sshd_config_original
+
+# test for the presence of the sshd_config  file.
+if [ ! -f  /etc/ssh/sshd_config ] ; then
+   echo ""
+   echo " cannot find /etc/ssh/sshd_config  is openssh-server installed?"
+   echo " exiting"
+   exit 1
+fi
+
+# sed
+#    #ClientAliveCountMax 3
+#    ClientAliveCountMax 600
+MAX_COUNT=$(cat /etc/ssh/sshd_config | grep \#ClientAliveCountMax )
+echo "--Original: ClientAliveMaxCount  $MAX_COUNT"
+if [ "$MAX_COUNT" != "" ] ; then
+   echo "    uncomment #ClientAliveCountMax and set to 600"
+   sed -i 's/.*ClientAliveCountMax.*/ClientAliveCountMax 600/g' /etc/ssh/sshd_config
+fi
+
+# sed
+#    #ClientAliveInterval 0
+#    ClientAliveInterval 3
+ALIVE=$(cat /etc/ssh/sshd_config | grep \#ClientAliveInterval )
+echo "--Original ClientAliveInterval  $ALIVE"
+if [ "$ALIVE" != "" ] ; then
+   echo "    uncomment #ClientAliveInterval and set to 3"
+   sed -i  's/.*ClientAliveInterval.*/ClientAliveInterval 3/g' /etc/ssh/sshd_config
+fi
+
+# sed
+#    #PermitRootLogin prohibit-password
+#    PermitRootLogin yes
+ROOT_LOGIN=$(cat /etc/ssh/sshd_config | grep \#PermitRootLogin )
+echo "--Original:  PermitRootLogin $ROOT_LOGIN"
+if [ "$ROOT_LOGIN" != "" ] ; then
+   echo "    uncomment #PermitRootLogin and set to \"yes\""
+   sed -i 's/.*PermitRootLogin.*/PermitRootLogin yes/g'       /etc/ssh/sshd_config
+fi
+
+# now restart the sshd service.
+systemctl restart sshd
+}
+
+
 #################################
 # Editing and search Items:
 #################################
@@ -24,21 +77,11 @@ apt-get install cscope
 #################################
 # Network Items:
 #################################
-apt-get install ntp
-apt-get install tcpdump
-apt-get install ethtool
-apt-get install openssh-server
-#
-# vim /etc/ssh/
-# sed
-#    #PermitRootLogin prohibit-password
-#    PermitRootLogin yes
-#
-#    #ClientAliveInterval 0
-#    ClientAliveInterval 3
-#    #ClientAliveCountMax 3
-#    ClientAliveCountMax 600
-# systemctl restart sshd
+apt-get install ntp -y
+apt-get install tcpdump -y
+apt-get install ethtool -y
+apt-get install openssh-server -y
+   ssh_config_change_config()
 #
 apt-get install curl -y
 apt-get install nfs-client -y

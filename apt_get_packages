@@ -84,6 +84,8 @@ apt-get install openssh-server -y
    ssh_config_change_config()
 #
 apt-get install curl 
+apt-get install pciutils
+exit
 apt-get install nfs-client 
 apt-get install ipsec-tools 
 apt-get install tftpd-hpa  

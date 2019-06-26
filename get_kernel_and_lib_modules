@@ -2,7 +2,7 @@
 
 #TARGET=DOUBLE_SHOT
 #TARGET=SINGLE_SHOT
-#TARGET=SINGLE_SHOT
+TARGET=CN83XX
 #TARGET=CN9130
 #TARGET=A3900
 
@@ -70,7 +70,12 @@ elif [ "$TARGET" == "CN9130" ] ;  then
 
     OUTPUT_DIR=cn9130-release-output
 
-elif [ "$TARGET" == "CN9130" ] ;  then
+elif [ "$TARGET" == "CN83XX" ] ;  then
+
+    OUTPUT_DIR=cn83xx-release-output
+
+
+elif [ "$TARGET" == "A3900" ] ;  then
 
    OUTPUT_DIR=a3900_B-release-output
 
@@ -129,7 +134,13 @@ tar -xvf ./images/$ROOTFS_FILE  --directory $TEMP_DIR
 #echo "-----------------"
 
 banner "  tar - up  $BOOT_FILES  "
+
+if [ "$TARGET" == "CN83XX" ] ;  then
+# old cavium tool chain does not put the "Image" file in \boot directory
+ tar -czvf $BOOT_FILES  -C $BASE_DIR/$OUTPUT_DIR/images Image
+else
  tar -czvf $BOOT_FILES --directory  $TEMP_DIR/boot .
+fi
  mv -f  $BOOT_FILES  $CURRENT_DIR/.
 
 banner "  tar - up  $LIB_FILES  "

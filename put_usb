@@ -2,7 +2,8 @@
 
 
 #TARGET=DOUBLE_SHOT
-TARGET=SINGLE_SHOT
+#TARGET=SINGLE_SHOT
+TARGET=cn83
 #TARGET=a3900
 
 
@@ -19,15 +20,12 @@ fi
 
 
 if [ $TARGET == "DOUBLE_SHOT" ] ;  then
-
     OUTPUT_DIR=a80x0_mcbin-release-output
-
 elif  [ $TARGET == "SINGLE_SHOT" ] ;  then
-
    OUTPUT_DIR=a80x0_mcbin_single_shot-release-output
-
+elif  [ $TARGET == "cn83" ] ;  then
+   OUTPUT_DIR=cn83xx-release-output
 elif  [ $TARGET == "a3900" ] ;  then
-
    OUTPUT_DIR=a3900_B-release-output
 else
    echo " Unrecgonized target!!!"

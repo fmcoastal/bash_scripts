@@ -1,1 +1,5 @@
 bash scripts I use to do various things and want to save
+
+// need nfs-client installed
+mkdir /sdk
+mount 10.11.70.12:/sdk /sdk

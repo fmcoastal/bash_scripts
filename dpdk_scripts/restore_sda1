@@ -1,0 +1,118 @@
+#!/bin/bash
+
+# This script expects a usb stick with two partitions.
+#  Partition 1  the working Partition
+#  Partition 2  the recover/safe boot partion.
+#  
+#  you should find this script along with rootfs.b2z, 
+#         Image.tgz, and lib.tgz
+#
+#  this script mounts the first partition and installs 
+#  the rootfs, and other files in directory to the first
+#  Partition. 
+
+TARGET=/mnt
+
+banner() {
+        echo ""
+        echo "******"
+        echo "* $1 "
+        echo "******"
+}
+
+#test if transfer files are available. 
+if [ ! -f image.tgz ] || [ ! -f lib.tgz ] || [ ! -f rootfs.b2z ]
+then
+   banner " missing the files necessary to restore /dev/sda1 "
+   if [ ! -f image.tgz ] ; then
+       echo " -- missing image.tgx"
+   fi
+   if [ ! -f lib.tgz ] ; then
+       echo " -- missing image.tgx"
+   fi
+   if [ ! -f rootfs.b2z ] ; then
+       echo " -- missing image.tgx"
+   fi
+ 
+   exit 1
+fi
+
+#test if /mnt is in use
+MOUNTED_TEST=$(mount | grep  /mnt)
+if [ "$MOUNTED_TEST"  != "" ] ; then
+   banner " /mnt is currently mounted - umount and try again"
+   exit 2
+fi
+
+# mount /mnt 
+banner "mount /dev/sda1"
+mount /dev/sda1 $TARGET
+
+# confirm the mount worked
+MOUNTED_TEST=$(mount | grep  /mnt)
+if [ "$MOUNTED_TEST"  == "" ] ; then
+   banner "** failed to mount /dev/sda1"
+   exit 3
+fi
+
+# Delete the direcories on /dev/sda1
+banner "delete the directories on  /dev/sda1"
+rm -rf $TARGET/boot
+rm -rf  $TARGET/etc
+rm -rf  $TARGET/lib
+rm -rf  $TARGET/mnt
+rm -rf  $TARGET/proc
+rm -rf  $TARGET/sbin
+rm -rf  $TARGET/sys
+rm -rf  $TARGET/usr
+rm -rf  $TARGET/bin
+rm -rf  $TARGET/dev
+rm -rf  $TARGET/home
+rm -rf  $TARGET/media
+rm -rf  $TARGET/opt
+rm -rf  $TARGET/root
+rm -rf  $TARGET/run
+rm -rf  $TARGET/srv
+rm -rf  $TARGET/tmp
+rm -rf  $TARGET/var
+
+# show what was not deleted
+banner "ls -la $TARGET"
+ls -la $TARGET
+sleep 5
+
+# copy the rootfs, kernel, dtb, and Libs
+banner "untar the rootfs "
+tar -xjvf rootfs.b2z  --directory $TARGET/.
+banner "untar the kernel"
+tar -xzvf image.tgz   --directory $TARGET/boot/.
+banner "untar the modules"
+tar -xzvf lib.tgz    --directory $TARGET/.
+#tar -xzvf modules.tgz --directory $TARGET/.
+
+
+# apt_get_packages is a script to load a bunch 
+# of programs to the ubuntu rootfs.
+if [ -f apt_get_packages ] ; then
+   banner " transfer apt_get_packages"
+   cp apt_get_packages   $TARGET/root/.
+fi
+
+# if a misc directory exists, copy that directory
+# over to sda1.  (I use it to restore scripts and other items)
+if [ -d misc ] ; then
+   banner " found \"misc\" directory, will transfer to $TARGET/root/."
+   cp -r misc   $TARGET/root/.
+else
+   banner " no \"misc\" directory detected. no ./misc/<contents> transfered."
+fi
+
+
+
+banner "sync and umount $TARGET"
+sync
+umount $TARGET
+
+
+echo "DONE!"
+

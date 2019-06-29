@@ -1,0 +1,31 @@
+#!/bin/bash
+banner() {
+echo "*****************************************"
+echo "*  $1"
+echo "*****************************************"
+}
+
+
+#dpdk-devbind.py  --status
+
+banner "show interfaces we are interested in .."
+dpdk-devbind.py  --status | grep  0001:01:00\.[12] 
+
+
+
+banner " unbinding 0001:01:00.1"
+dpdk-devbind.py  -u 0001:01:00.1 
+
+banner " unbinding 0001:01:00.2"
+dpdk-devbind.py  -u 0001:01:00.2 
+
+
+banner " bind  0001:01:00.1 to dpdk driver"
+dpdk-devbind.py  --bind=vfio-pci   0001:01:00.1 
+banner " bind  0001:01:00.2 to dpdk driver"
+dpdk-devbind.py  --bind=vfio-pci   0001:01:00.2 
+
+
+banner " Print dpdk-devbind.py --status"
+#dpdk-devbind.py  --status | grep  0001:01:00\.[12] 
+#dpdk-devbind.py  --status  

@@ -1,0 +1,10 @@
+
+PATH=$PATH:/scripts/dpdk_scripts 
+PATH=$PATH:/scripts   
+PATH=$PATH:/home/misc/usertools   
+echo $PATH
+
+# echo "cut and Paste   PATH=\$PATH:/home/misc/usertools   "
+
+
+

@@ -1,0 +1,56 @@
+#!/bin/bash
+
+echo "******************"
+echo "* Before  "
+echo "******************"
+cat /proc/meminfo |grep -i Huge 
+
+echo ""
+echo "******************"
+echo "* Test if /mnt/huge exits.  Create if not present"
+echo "******************"
+
+if [ ! -d /mnt/huge ] ; then
+	echo "Creating /mnt/huge"
+	mkdir -p /mnt/huge
+else
+	echo " file /mnt/huge exists" 
+fi
+
+
+echo ""
+echo "******************"
+echo "* test if hugetlbs has been mounted to /mnt/huge"
+echo "******************"
+TST_MOUNT=$(mount |grep -i /mnt/huge)
+echo   "--- TST_MOUNT:   $TST_MOUNT"
+if [ "$TST_MOUNT"  == "" ] ; then
+	echo "** creating mount for hugetlbs *** "
+        mount -t hugetlbfs nodev /mnt/huge
+else
+      echo  "-- nodev has been mounted to /mnt/huge --"
+fi
+
+echo ""
+echo "******************"
+echo "* Test if pages in the pool.  add if none present"
+echo "******************"
+ALLOCATE=$( cat /proc/meminfo | grep -i "HugePages_Total" )
+echo "--- ALLOCATE:  $ALLOCATE"
+
+# echo fish out the value
+HUGEPAGES_TOTAL=$( echo $ALLOCATE | awk '{print $2}' )
+echo "--- HUGEPAGES_TOTAL:   $HUGEPAGES_TOTAL"
+
+if [ $HUGEPAGES_TOTAL == 0 ] ;  then 
+   echo " adding pages to the pool "
+   echo 16 >/proc/sys/vm/nr_hugepages
+else
+	echo "pool already has pages added "
+fi   
+
+echo "******************"
+echo "* After"
+echo "******************"
+cat /proc/meminfo |grep -i Huge 
+

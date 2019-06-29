@@ -1,0 +1,4 @@
+#!/bin/bash
+INTERFACE=enx0050b6c52117
+dhclient -i $INTERFACE 
+ip a s $INTERFACE

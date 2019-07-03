@@ -1,0 +1,11 @@
+#!/bin/bash
+#make apt_get_packages executible
+chmod +x ../apt_get_packages
+
+
+# set up eth1 to be dhcp
+cp 01-netcfg.yaml  /etc/netplan/.
+netplan apply
+sleep 3
+ip a s
+

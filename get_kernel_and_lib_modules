@@ -2,14 +2,15 @@
 
 #TARGET=DOUBLE_SHOT
 #TARGET=SINGLE_SHOT
-TARGET=CN83XX
-#TARGET=CN9130
+#TARGET=CN83XX
+TARGET=CN9130
 #TARGET=A3900
 
 ######################
 # BASE_DIR is the directory the SDK is installed in.
 
-BASE_DIR=/sdk/SDK19061
+#BASE_DIR=/sdk/SDK19061
+BASE_DIR=/sdk/SDK190603/SDK10.0_19.06.3-src
 
 
 ######################
@@ -141,11 +142,26 @@ if [ "$TARGET" == "CN83XX" ] ;  then
 else
  tar -czvf $BOOT_FILES --directory  $TEMP_DIR/boot .
 fi
- mv -f  $BOOT_FILES  $CURRENT_DIR/.
+md5sum=$(md5sum $BOOT_FILES)
+echo $md5sum > "$BOOT_FILES".md5 
+
+
 
 banner "  tar - up  $LIB_FILES  "
- tar -czvf $LIB_FILES --directory $TEMP_DIR  lib/modules/.
+tar -czvf $LIB_FILES --directory $TEMP_DIR  lib/modules/.
+md5sum=$(md5sum $LIB_FILES)
+echo $md5sum > "$LIB_FILES".md5 
+
+
+if [ $CURRENT_DIR  != $BASE_DIR/$OUTPUT_DIR ] ; then
+ banner "Transfer files to current directory"
+ mv -f $BOOT_FILES  $CURRENT_DIR/.
+ mv -f "$BOOT_FILES".md5  $CURRENT_DIR/.
  mv -f $LIB_FILES  $CURRENT_DIR/.
+ mv -f "$LIB_FILES".md5  $CURRENT_DIR/.
+else
+ banner "no Transfer needed: current dir is output/images  dir"
+fi
 
 banner "  Remove the temp directory we created  "
 rm -rf $TEMP_DIR

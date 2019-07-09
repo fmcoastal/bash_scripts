@@ -141,7 +141,7 @@ tar -xvf ./images/$ROOTFS_FILE  --directory $TEMP_DIR
 
 banner "  tar - up  $BOOT_FILES  "
 
-if [ "$TARGET" == "CN83XX" ] ;  then
+if [ "$TARGET" == "CN83XX" ] || [ "$TARGET" == "CN96XX" ] ;  then
 # old cavium tool chain does not put the "Image" file in \boot directory
  tar -czvf $BOOT_FILES  -C $BASE_DIR/$OUTPUT_DIR/images Image
 else

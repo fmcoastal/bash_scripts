@@ -3,7 +3,8 @@
 #TARGET=DOUBLE_SHOT
 #TARGET=SINGLE_SHOT
 #TARGET=CN83XX
-TARGET=CN9130
+#TARGET=CN9130
+TARGET=CN96XX
 #TARGET=A3900
 
 ######################
@@ -70,6 +71,10 @@ elif [ "$TARGET" == "SINGLE_SHOT" ] ;  then
 elif [ "$TARGET" == "CN9130" ] ;  then
 
     OUTPUT_DIR=cn9130-release-output
+
+elif [ "$TARGET" == "CN96XX" ] ;  then
+
+    OUTPUT_DIR=cn96xx-release-output
 
 elif [ "$TARGET" == "CN83XX" ] ;  then
 

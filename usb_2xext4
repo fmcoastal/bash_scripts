@@ -112,6 +112,12 @@ if [ $# -eq 0 ] ; then
    exit
 fi
 
+RUNNING_AS=$(whoami)
+if [ "$RUNNING_AS" != "root" ] ; then
+echo "Must be root to run this script "
+exit 2
+fi
+
 
 BLOCK="$1"
 PARTITION_1="$1"1

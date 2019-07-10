@@ -7,6 +7,8 @@ RED=$'\e[31m'
 NORMAL=$'\e[0m'
 
 
+sync 
+
 CHECK=$(mount |grep sdb)
 
 if [ "$CHECK" == "" ] ; then
@@ -26,6 +28,7 @@ if [ "$CHECK" == "" ] ; then
 else
    echo $RED
    echo "----- UNMOUNT DRIVE -----"
+   sync
    umount /mnt/p1
    umount /mnt/p2
    sync

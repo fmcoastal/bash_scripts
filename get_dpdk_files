@@ -1,0 +1,188 @@
+#!/bin/bash
+
+#TARGET=DOUBLE_SHOT
+#TARGET=SINGLE_SHOT
+#TARGET=CN83XX
+#TARGET=CN9130
+TARGET=CN96XX
+#TARGET=A3900
+
+######################
+# BASE_DIR is the directory the SDK is installed in.
+
+#BASE_DIR=/sdk/SDK19061
+BASE_DIR=/sdk/SDK190603/SDK10.0_19.06.3-src
+
+
+ROOTFS_FILE=rootfs.tar
+DPDK_FILES=dpdk_files.tar
+
+######################
+#filename created by buildroot process for the root filesystem 
+DPDK_FILE=dpdk_files.tar
+
+TEMP_DIR=temp_decompress_rootfs
+
+#################### 
+# Output Manipulations
+BLACK=$'\e[30m'
+RED=$'\e[31m'
+GREEN=$'\e[32m'
+YELLOW=$'\e[33m'
+BLUE=$'\e[34m'
+MAGENTA=$'\e[35m'
+CYAN=$'\e[36m'
+GRAY=$'\e[37m'
+WHITE=$'\e[0m'
+
+NORMAL=$'\e[0m'
+BOLD=$'\e[1m'
+UNDERLINE=$'\e[4m'
+BLINK=$'\e[5m'
+INVERT=$'\e[7m'
+
+#   banner()
+banner() {
+echo ""
+echo "********"
+echo "* $1"
+echo "********"
+}
+
+
+# select the target Directory.
+if [ "$TARGET" == "DOUBLE_SHOT" ] ;  then
+    OUTPUT_DIR=a80x0_mcbin-release-output
+elif [ "$TARGET" == "SINGLE_SHOT" ] ;  then
+    OUTPUT_DIR=a80x0_mcbin_single_shot-release-output
+elif [ "$TARGET" == "CN9130" ] ;  then
+    OUTPUT_DIR=cn9130-release-output
+elif [ "$TARGET" == "CN96XX" ] ;  then
+    OUTPUT_DIR=cn96xx-release-output
+elif [ "$TARGET" == "CN83XX" ] ;  then
+    OUTPUT_DIR=cn83xx-release-output
+elif [ "$TARGET" == "A3900" ] ;  then
+   OUTPUT_DIR=a3900_B-release-output
+else
+   echo $RED
+   echo "\"TARGET\" not defined in Script"
+   echo $WHITE
+   echo "     - please modifiy script"
+   echo "     exiting"
+   exit
+fi
+
+echo " -----------   WARNING -------------- "
+echo " We will use "
+echo $GREEN
+echo "    sdk:  $BASE_DIR  for $OUTPUT_DIR  "
+echo $WHITE
+echo " ------------------------------------ "
+sleep 5
+
+# save where we are :-)
+CURRENT_DIR=$PWD
+
+banner "change directory to $BASE_DIR/$OUTPUT_DIR"
+pushd $BASE_DIR/$OUTPUT_DIR
+
+
+banner " Remove Pre-existing Files/Folder--- $TEMP_DIR $DPDK_FILES  "
+if  [ -d $TEMP_DIR ] || [ -f $DPDK_FILES ] ; then
+   echo $RED
+   if [ -d $TEMP_DIR ] ; then
+       echo "- found old $TEMP_DIR - Removing"
+       rm -rf $TEMP_DIR
+   fi
+ 
+   if [ -f $DPDK_FILES ] ; then
+       echo "- found old $DPDK_FILES - Removing"
+       rm -rf $DPDK_FILES
+   fi
+   sleep 5
+   echo $NORMAL
+fi
+
+banner " Create $TEMP_DIR to un-tar $ROOTFS_FILE in "
+mkdir $TEMP_DIR
+
+
+banner "  Un-tar $ROOTFS_FILE  "
+tar -xvf ./images/$ROOTFS_FILE  --directory $TEMP_DIR
+
+
+cd $TEMP_DIR
+
+banner "fish out the dpdk files if any"
+FILE_LIST=$(find .  -type f -name "*dpdk*" -print)
+# FILE_LIST is a text file with 0x0a as line feeds.  If
+# you ' echo $FILE_LIST '  the 0x0a get printed as a space
+if [ $VERBOSE != 0 ] ; then
+    echo "*********"
+    echo "* FILE_LIST: "
+    echo "*********"
+    echo $FILE_LIST
+    echo "*** end FILE_LIST ***"
+fi
+
+# IFS stands for "internal field separator". It is used by
+#   the shell to determine how to do word splitting, i. e. how
+#   to recognize word boundaries.  so we will set it to space
+#   and read the File List into it
+# also:
+#  https://stackoverflow.com/questions/11393817/read-lines-from-a-file-into-a-bash-array
+
+#IFS='\n' read -r -a FILE_NAMES <<< "$FILE_LIST"
+IFS='\n'  GLOBIGNORE='*' command eval
+
+flag=0
+
+# read each of the lines
+for line in $FILE_LIST ; do
+
+#   echo " -- flag:$flag  line: $line"
+    if [ $flag == 0 ] ; then
+        echo "$CYAN ---  Create the Archive:$NORMAL $line"
+        tar -cvf $DPDK_FILES $line
+        flag=1
+    else
+        echo "$GREEN --- add to the Archive:$NORMAL   $line"
+        tar -rvf $DPDK_FILES $line
+    fi
+done
+
+# copy the tar file up out of the temp directory 
+mv $DPDK_FILES ../.
+# move up out of the temporary Directory
+cd ..
+
+
+
+echo ""
+echo "*********"
+echo "$CYAN Files in the  $DPDK_FILES archive $NORMAL"
+tar -tvf $DPDK_FILES
+
+
+md5sum=$(md5sum $DPDK_FILES)
+echo $md5sum > "$DPDK_FILES".md5 
+
+
+if [ $CURRENT_DIR  != $BASE_DIR/$OUTPUT_DIR ] ; then
+ banner "Transfer files to current directory"
+ mv -f $DPDK_FILES  $CURRENT_DIR/.
+ mv -f "$DPDK_FILES".md5  $CURRENT_DIR/.
+else
+ banner "no Transfer needed: current dir is output/images  dir"
+fi
+
+banner "  Remove the temp directory we created  "
+rm -rf $TEMP_DIR
+
+
+echo ""
+echo "$CYAN** Done!$NORMAL"
+echo ""
+
+popd
+

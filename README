@@ -1,5 +1,76 @@
+#!/bin/bash
+
 bash scripts I use to do various things and want to save
 
+And notes
+
+
+**********************************************
+**********************************************
 // need nfs-client installed
 mkdir /sdk
 mount 10.11.70.12:/sdk /sdk
+
+
+**********************************************
+* want for most BASH FILES
+**********************************************
+
+#!/bin/bash
+
+####################
+# Text Output Manipulations
+BLACK=$'\e[30m'
+RED=$'\e[31m'
+GREEN=$'\e[32m'
+YELLOW=$'\e[33m'
+BLUE=$'\e[34m'
+MAGENTA=$'\e[35m'
+CYAN=$'\e[36m'
+GRAY=$'\e[37m'
+WHITE=$'\e[0m'
+
+NORMAL=$'\e[0m'
+BOLD=$'\e[1m'
+UNDERLINE=$'\e[4m'
+BLINK=$'\e[5m'
+INVERT=$'\e[7m'
+
+#   banner()
+banner() {
+echo ""
+echo "********"
+echo "* $1"
+echo "********"
+}
+
+
+**********************************************
+* change a line of text in a file
+**********************************************
+# sed
+#    #ClientAliveCountMax 3
+#    ClientAliveCountMax 600
+MAX_COUNT=$(cat /etc/ssh/sshd_config | grep \#ClientAliveCountMax )
+echo "--Original: ClientAliveMaxCount  $MAX_COUNT"
+if [ "$MAX_COUNT" != "" ] ; then
+   echo "    uncomment #ClientAliveCountMax and set to 600"
+   sed -i 's/.*ClientAliveCountMax.*/ClientAliveCountMax 600/g' /etc/ssh/ssh    d_config
+fi
+
+
+
+
+**********************************************
+* Test for mounted directory
+**********************************************
+TST_MOUNT=$(mount |grep -i /mnt/huge)
+echo   "--- TST_MOUNT:   $TST_MOUNT"
+if [ "$TST_MOUNT"  == "" ] ; then
+	echo "** creating mount for hugetlbs *** "
+        mount -t hugetlbfs nodev /mnt/huge
+else
+      echo  "-- nodev has been mounted to /mnt/huge --"
+fi
+
+

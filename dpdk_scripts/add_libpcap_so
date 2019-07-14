@@ -1,0 +1,61 @@
+apt-get install wget
+apt-get install make
+apt-get install bison
+apt-get install flex
+apt-get install m4  -- i do not think you need this
+
+
+cd /root
+wget http://www.tcpdump.org/release/libpcap-1.8.1.tar.gz .
+tar -zxvf libpcap-1.8.1.tar.gz
+cd libpcap-1.8.1
+./configure
+make
+make install
+ 
+Until now, installation is finished. You may test it with the following code (test.c):
+
+   #include <stdio.h>
+   #include <pcap.h>
+
+    int main(int argc, char *argv[])
+    {
+        char *dev, errbuf[PCAP_ERRBUF_SIZE];
+
+        dev = pcap_lookupdev(errbuf);
+        if (dev == NULL) {
+            fprintf(stderr, "Couldn't find default device: %s\n", errbuf);
+           return(2);
+        }
+        printf("Device: %s\n", dev);
+        return(0);
+    }
+
+Commands to compile and execute this program:
+$ gcc test.c -lpcap
+$ sudo ./a.out
+** use sudo to execute the program, because of permission required
+Expected output should be like this:
+                                                         Device: eth0
+
+One problem you may come across during running the program:
+
+"error while loading shared libraries: libpcap.so.1: cannot open shared object file: No such file or directory"
+
+This is because we have installed using .tar.gz, then library is installed in /usr/local/lib directory.
+
+Solution:
+
+Open /etc/ld.so.conf as root, and add the following two lines to it:
+
+/usr/local/lib
+/usr/lib
+
+Then execute command:
+
+$ sudo ldconfig
+
+Now compile and run test.c again, and you may get the result.
+
+
+

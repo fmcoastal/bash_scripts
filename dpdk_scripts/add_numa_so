@@ -1,0 +1,84 @@
+
+numa components are  needed on the crosscompile machine as well as the 
+target machine.  Below are the instructions I used to create numa on 
+ruff.
+
+Instruction were in DPDK: 
+ # Crosscompile notes for DPDK
+ #    https://doc.dpdk.org/guides/linux_gsg/cross_build_dpdk_for_arm64.html?highlight=cross%20compile
+
+-) add packages
+
+   apt-get install libtool-bin  
+
+-) buildroot - explode the tools tarball. 
+
+   cd /sdk/SDK190603/SDK10.0_19.06.3-src
+   tar -xjvf toolchain.tar.bz2
+   cd toolchain
+   tar -xjvf marvell-tools-233.0.tar.bz2
+
+-) Setup environment to point to cross compile tool chain
+
+   export PATH=/sdk/SDK190603/SDK10.0_19.06.3-src/toolchain/marvell-tools-233.0/bin:$PATH
+   export CROSS=aarch64-marvell-linux-gnu-
+
+-) Setup a target output directory
+
+    export DESTDIR=/sdk/fs_target
+
+
+-) get numa code and place it under my DPDK directory
+
+   cd /sdk/dpdk
+   git clone https://github.com/numactl/numactl.git
+   cd numactl
+   git checkout v2.0.11 -b v2.0.11
+   ./autogen.sh
+   autoconf -i
+   ./configure --host=aarch64-linux-gnu CC=aarch64-marvell-linux-gnu-gcc
+   make install
+
+-) run libtool to complete - note, the files will be placed in the DESTDIR
+   location as opposed to /usr/local/lib. (Because we are cross compiling)
+   
+  libtool --finish /usr/local/lib
+
+-) Copy numa files into toolchain directories
+ 
+    TOOLS_BASE=/sdk/SDK190603/SDK10.0_19.06.3-src/toolchain/marvell-tools-233.0/aarch64-marvell-linux-gnu
+    COMPILER_H_FILES=$TOOLS_BASE/sys-root/usr/include
+    COMPILER_LIB_FILES=$TOOLS_BASE/sys-root/usr/lib64
+ 
+    cp /sdk/fs_target/usr/local/lib/libnuma.so  $COMPILER_LIB_FILES/.
+    cp /sdk/fs_target/usr/local/lib/libnuma.a   $COMPILER_LIB_FILES/.
+    cp  /sdk/fs_target/usr/local/include/numa.h   $COMPILER_H_FILES/.
+    cp  /sdk/fs_target/usr/local/include/numaif.h   $COMPILER_H_FILES/.
+    cp  /sdk/fs_target/usr/local/include/numacompat1.h $COMPILER_H_FILES/.
+
+-) tar up the results, we will need to place these files on the Target Machine
+    cd /sdk/fs_target
+    tar -cvf numa_lib_files.tgz .
+  
+
+-) On the target system
+
+--) Copy numa_lib_files.tgz to target system.  
+
+--) Explode numa_lib_files.tgz  at "/" level
+
+--) Edit /etc/ld.so.conf as root, and add the following two lines to it:
+
+   /usr/local/lib
+   /usr/lib
+
+--)Run  "ldconfig" on the target machine to add the numa libs 
+      to the running system.
+
+   sudo ldconfig
+
+
+
+
+
+

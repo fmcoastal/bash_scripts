@@ -61,13 +61,19 @@ apt update
 apt-get install vim
 if [ ! -f  /home/fsmith/.vimrc ]
 then
-   echo "set nu"    > /home/fsmith/.vimrc
-   echo "set sm"    >>/home/fsmith/.vimrc
-   echo "syntax on" >>/home/fsmith/.vimrc
+   echo "set nu"            > /home/fsmith/.vimrc
+   echo "set sm"            >>/home/fsmith/.vimrc
+   echo "syntax on"         >>/home/fsmith/.vimrc
+   echo "set expandtab"     >>/home/fsmith/.vimrc
+   echo "set tabstop=4"     >>/home/fsmith/.vimrc
+   echo "set shiftwidth=4"  >>/home/fsmith/.vimrc
 fi
-echo "set nu"    > /root/.vimrc
-echo "set sm"    >>/root/.vimrc
-echo "syntax on" >>/root/.vimrc
+echo "set nu"            > /root/.vimrc
+echo "set sm"            >>/root/.vimrc
+echo "syntax on"         >>/root/.vimrc
+echo "set expandtab"     >>/root/.vimrc
+echo "set tabstop=4"     >>/root/.vimrc
+echo "set shiftwidth=4"  >>/root/.vimrc
 
 apt-get install git 
 git config --global user.name "Frank Smith"

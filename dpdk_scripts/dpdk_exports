@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+#   Assume the directory structure looks like this
+#
+#  /home/fsmith/marvell   /sdk   /SDK-19.06.3-src
+#                              
+#                         /dpdk  /DPDK-19.05
+#                         /libpcap
+#                         /numa
+#
+#
+
+
+
+TARGET=cn96xx-release-output
+SDK_REV=SDK10.0_19.06.3-src
+SDK_REV=DPDK-19.05
+
+
+BASE_DIR=/home/fsmith/marvell
+
+SDK_DIR=/sdk/$SDK_REV;
+
+export PATH=$SDK_DIR/toolchain/marvell-tools-233.0/bin:$PATHi
+export CROSS=aarch64-marvell-linux-gnu-
+export RTE_KERNEL_DIR=$BASE_DIR/sdk/$SDK_REV/$TARGET/build/linux-custom
+export RTE_SDK=$BASE_DIR/dpdk/$DPDK_REV
+export RTE_ARCH=arm64
+export DESTDIR=/home/fsmith/marvell/fs_target
+export RTE_TARGET=build          
+
+# export LD_LIBRARY_PATH=/home/fsmith/marvell/sdk/toolchain/ toolchain-install-gcc_5_3-421/lib64/:${LD_LIBRARY_PATH}          
+

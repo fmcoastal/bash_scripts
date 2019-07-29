@@ -2,32 +2,54 @@
 #
 #   Assume the directory structure looks like this
 #
+#     <BASE_DIR>                    <REV DIR>       <OUTPUT_DIR>
 #  /home/fsmith/marvell   /sdk   /SDK-19.06.3-src
+#                         /sdk   /SDK-19.06.3-src  /cn96xx-release-output
 #                              
-#                         /dpdk  /DPDK-19.05
+#                         /dpdk  /dpdk-19.05
+#                         /dpdk  /fs_target
 #                         /libpcap
 #                         /numa
+#                         /ubuntu
 #
-#
+
+DPDK_REV=dpdk-19.05
+
+DEVICE=cn96xx
+
+if [ "$DEVICE" ==  "cn96xx" ] ; then
+
+    OUTPUT_DIR=cn96xx-release-output
+
+    BASE_DIR=/home/fsmith/marvell
+
+# because the engineering developement has a different path structure
+    SDK_REV=sdk10_ed1003_with_dpdk/SDK10.0-ED1003-DPDK/sdk
+
+else
+
+   OUTPUT_DIR=cn83xx-release-output
+
+   BASE_DIR=/sdk
+
+   SDK_REV=SDK10.0_19.06.3-src
+
+fi
+
+SDK_DIR=$BASE_DIR/sdk/$SDK_REV
+DPDK_DIR=$BASE_DIR/dpdk/$DPDK_REV
+echo "OUTPUT_DIR:  $OUTPUT_DIR"
+echo "SDK_DIR: $SDK_DIR"
 
 
-
-TARGET=cn96xx-release-output
-SDK_REV=SDK10.0_19.06.3-src
-SDK_REV=DPDK-19.05
-
-
-BASE_DIR=/home/fsmith/marvell
-
-SDK_DIR=/sdk/$SDK_REV;
-
-export PATH=$SDK_DIR/toolchain/marvell-tools-233.0/bin:$PATHi
+export RTE_KERNEL_DIR=$SDK_DIR/$OUTPUT_DIR/build/linux-custom
+export PATH=$SDK_DIR/toolchain/marvell-tools-233.0/bin:$PATH
 export CROSS=aarch64-marvell-linux-gnu-
-export RTE_KERNEL_DIR=$BASE_DIR/sdk/$SDK_REV/$TARGET/build/linux-custom
+
+export DESTDIR=$BASE_DIR/dpdk/fs_target
 export RTE_SDK=$BASE_DIR/dpdk/$DPDK_REV
 export RTE_ARCH=arm64
-export DESTDIR=/home/fsmith/marvell/fs_target
 export RTE_TARGET=build          
 
-# export LD_LIBRARY_PATH=/home/fsmith/marvell/sdk/toolchain/ toolchain-install-gcc_5_3-421/lib64/:${LD_LIBRARY_PATH}          
+# export LD_LIBRARY_PATH=/home/fsmith/marvell/sdk/toolchain/toolchain-install-gcc_5_3-421/lib64/:${LD_LIBRARY_PATH}          
 

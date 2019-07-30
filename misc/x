@@ -1,6 +1,6 @@
 #!/bin/bash
 #make apt_get_packages executible
-chmod +x ../apt_get_packages
+chmod +x ./apt_get_packages
 
 
 # set up eth1 to be dhcp
@@ -9,3 +9,25 @@ netplan apply
 sleep 3
 ip a s
 
+GET_DPDK=no
+
+if [ "$GET_DPDK" = "no" ] ; then
+  scp fsmith@10.11.70.12:/scripts/dpdk_scripts/huge_mem_cfg .
+  chmod +x huge_mem_cfg
+  scp fsmith@10.11.70.12:/scripts/dpdk_scripts/dpdk_cfg     .
+  chmod +x dpdk_cfg
+  scp fsmith@10.11.70.12:/scripts/dpdk_scripts/path_update  .
+  chmod +x path_update
+  scp fsmith@10.11.70.12:/scripts/dpdk_scripts/l2.sh        .
+  chmod +x l2.sh
+  scp fsmith@10.11.70.12:/scripts/dpdk_scripts/l3.sh        .
+  chmod +x l3.sh
+  scp fsmith@10.11.70.12:/scripts/dpdk_scripts/pcap_ubuntu_add .
+  chmod +x l3.sh
+
+
+  scp fsmith@10.11.70.12:/scripts/dpdk_scripts/add_libpcap_so  .
+  scp fsmith@10.11.70.12:/scripts/dpdk_scripts/add_numa_so     .
+add_libpcap_so
+
+fi

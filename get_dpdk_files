@@ -11,7 +11,8 @@ TARGET=CN96XX
 # BASE_DIR is the directory the SDK is installed in.
 
 #BASE_DIR=/sdk/SDK19061
-BASE_DIR=/sdk/SDK190603/SDK10.0_19.06.3-src
+#BASE_DIR=/sdk/SDK190603/SDK10.0_19.06.3-src
+BASE_DIR=/home/fsmith/marvell/sdk/sdk10_ed1003_with_dpdk/SDK10.0-ED1003-DPDK/sdk
 
 
 ROOTFS_FILE=rootfs.tar

@@ -1,10 +1,22 @@
 
-PATH=$PATH:/scripts/dpdk_scripts 
-PATH=$PATH:/scripts   
-PATH=$PATH:/home/misc/usertools   
+echo ""
+echo "Old PATH:"
 echo $PATH
 
-# echo "cut and Paste   PATH=\$PATH:/home/misc/usertools   "
+echo ""
+echo "must be run as  \"source path_update\"   "
+
+PATH=$PATH:/scripts/dpdk_scripts 
+PATH=$PATH:/scripts   
+# below is where the busy box rootfs places the files.
+#  if we copy the files to the same location in ubuntu
+#  we need add that locationto the path
+PATH=/usr/share/dpdk/usertools:$PATH   
+echo ""
+echo "New PATH:"
+echo $PATH
+
+# echo "cut and Paste   PATH=$PATH:/home/misc/usertools   "
 
 
 

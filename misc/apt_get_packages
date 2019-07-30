@@ -83,11 +83,12 @@ git config --global --add color.ui true
 git config --global format.pretty oneline
 
 tempstring=$(cat /etc/apt/sources.list | grep universe)
-if [  $tempsting == "" ] ; then
+if [  "$tempsting" == "" ] ; then
    echo " need to modifiy /etc/apt/sources.list "
    echo "adding below to sources.list"
-   echo " deb http://ports.ubuntu.com/ubuntu-ports/bionic universe "
-   echo " deb http://ports.ubuntu.com/ubuntu-ports/bionic universe " >> /etc/apt/sources.list
+   echo " deb http://ports.ubuntu.com/ubuntu-ports/ bionic universe "
+   echo " deb http://ports.ubuntu.com/ubuntu-ports/ bionic universe " >> /etc/apt/sources.list
+   sync 
    apt-get update
 fi
 
@@ -113,7 +114,7 @@ exit
 
 apt-get install openssl
 apt-get install ssh
-apt-get install sshd-server
+apt-get install openssh-client 
 apt-get install net-tools
 #apt-get install nds-client
 

@@ -1,0 +1,123 @@
+#!/bin/bash
+# this script downloads libpcap from the tpcdump opensource site.
+# it compiles and install libpcap into your ubuntu rootfs.
+#  note the libraries here are not necessarily identical to the
+#  ones you built with in the Marvell SDK.  to be perfectly accurate
+#  consider finding teh libraries (/usr/lib ?) in the busybox rootfs
+#  and transfer them to the target system. 
+
+
+
+banner() {
+echo "*****************************************"
+echo "*  $1"
+echo "*****************************************"
+}
+
+######################################################################
+# this function modifies the ld.so.conf configuration.
+ld_so_conf_change(){
+
+pushd /etc
+
+# test for the presence of "/etc/ld.so.conf"
+if [ ! -f  /etc/ld.so.conf ] ; then
+   echo ""
+   echo " cannot find /etc/ld.so.conf ???"
+   echo " exiting"
+   exit 1
+fi
+
+banner "save the original file: ld.so.conf"
+cp ld.so.conf ld.so.conf_original
+
+
+USR_LOCAL_LIB=$(cat /etc/ld.so.conf  | grep /usr/local/lib )
+echo "--Original: /usr/local/lib  $USR_LOCAL_LIB"
+if [ "$USR_LOCAL_LIB" != "" ] ; then
+   echo "" >> /etc/ld.so.conf
+   echo "/usr/local/lib" >> /etc/ld.so.conf
+   echo "/usr/lib" >> /etc/ld.so.conf
+fi
+
+banner "contents of ld.so.conf file:"
+cat /etc/ld.so.conf
+
+# now resync the system
+ldconfig
+
+popd
+}
+
+
+#***************
+# banner " Must be root from here out "
+usrname=$(whoami)
+if [ $usrname != "root" ] ; then
+   echo "Need to be root.  Exiting script"
+   exit 1
+fi
+
+
+
+# build this inside root
+pushd /root
+
+
+banner "install package wget"
+apt-get install wget
+
+banner "install package make"
+apt-get install make
+
+banner "install package bison"
+apt-get install bison
+
+banner "install package flex"
+apt-get install flex
+
+
+banner "get libpcap opensource project"
+wget http://www.tcpdump.org/release/libpcap-1.8.1.tar.gz .
+
+banner "uncompress libpcap"
+tar -zxvf libpcap-1.8.1.tar.gz
+
+cd libpcap-1.8.1
+
+banner " ./configure"
+./configure
+
+banner " make "
+make
+
+banner " make install"
+make install
+
+
+ld_so_conf_change
+
+
+popd
+
+
+exit
+
+#   27  cd /root
+#   28  apt-get install wget
+#   29  apt-get install make
+#   30  apt-get install bison
+#   31  apt-get install flex
+#   32  wget http://www.tcpdump.org/release/libpcap-1.8.1.tar.gz .
+#   33  tar -zxvf libpcap-1.8.1.tar.gz
+#   34  cd libpcap-1.8.1
+#   35  ./configure
+#   36  make
+#   37  make install
+#   38  vim /etc/ld.so.conf
+#   39  ldconfig
+#   40  ls /usr/local/lib
+#   41  ls /usr/lib
+#   42  history
+
+

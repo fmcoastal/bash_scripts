@@ -39,7 +39,7 @@ fi
 SDK_DIR=$BASE_DIR/sdk/$SDK_REV
 DPDK_DIR=$BASE_DIR/dpdk/$DPDK_REV
 
-export RTE_KERNEL_DIR=$SDK_DIR/$OUTPUT_DIR/build/linux-custom
+export RTE_KERNELDIR=$SDK_DIR/$OUTPUT_DIR/build/linux-custom
 export PATH=$SDK_DIR/toolchain/marvell-tools-233.0/bin:$PATH
 export CROSS=aarch64-marvell-linux-gnu-
 
@@ -48,9 +48,11 @@ export RTE_SDK=$BASE_DIR/dpdk/$DPDK_REV
 export RTE_ARCH=arm64
 export RTE_TARGET=build          
 
-# export LD_LIBRARY_PATH=/home/fsmith/marvell/sdk/toolchain/toolchain-install-gcc_5_3-421/lib64/:${LD_LIBRARY_PATH}          
+export LD_LIBRARY_PATH=$BASE_DIR/sdk/$SDK_REV/toolchain/marvell-tools-233.0/lib64:${LD_LIBRARY_PATH}          
 echo "OUTPUT_DIR:  $OUTPUT_DIR"
 echo "SDK_DIR: $SDK_DIR"
-echo "RTE_KERNEL_DIR: $RTE_KERNEL_DIR"
-
+echo "RTE_KERNELDIR: $RTE_KERNELDIR"
+echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+echo ""
+echo "make install T=arm64-thunderx2-linux-gcc"
 

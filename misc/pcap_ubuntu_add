@@ -34,7 +34,7 @@ cp ld.so.conf ld.so.conf_original
 
 USR_LOCAL_LIB=$(cat /etc/ld.so.conf  | grep /usr/local/lib )
 echo "--Original: /usr/local/lib  $USR_LOCAL_LIB"
-if [ "$USR_LOCAL_LIB" != "" ] ; then
+if [ "$USR_LOCAL_LIB" == "" ] ; then
    echo "" >> /etc/ld.so.conf
    echo "/usr/local/lib" >> /etc/ld.so.conf
    echo "/usr/lib" >> /etc/ld.so.conf

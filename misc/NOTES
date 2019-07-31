@@ -1,0 +1,32 @@
+***  Set Date and Time:
+
+sudo date --set "25 Sep 2013 15:00:00"
+
+
+*** user  add
+
+adduser  <username>
+   -- answer the questions --
+
+usermod -aG sudo <username>
+
+****  Fixed IP address  
+
+root@localhost:/# cat /etc/netplan/01-netcfg.yaml
+
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+     eth8:
+        dhcp4: no
+        dhcp6: no
+        addresses: [172.19.184.100/24]
+        gateway4: 172.19.184.1
+        nameservers:
+            addresses: [216.228.150.150]
+        optional: true
+
+
+****  Fixed IP address  
+

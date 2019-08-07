@@ -1,32 +1,62 @@
 ***  Set Date and Time:
 
-sudo date --set "25 Sep 2013 15:00:00"
-
+   sudo date --set "25 Sep 2013 15:00:00"
 
 *** user  add
 
-adduser  <username>
-   -- answer the questions --
+   adduser  <username>
+        -- answer the questions --
 
-usermod -aG sudo <username>
+   usermod -aG sudo <username>
 
-****  Fixed IP address  
-
-root@localhost:/# cat /etc/netplan/01-netcfg.yaml
-
-network:
-  version: 2
-  renderer: networkd
-  ethernets:
-     eth8:
-        dhcp4: no
-        dhcp6: no
-        addresses: [172.19.184.100/24]
-        gateway4: 172.19.184.1
-        nameservers:
-            addresses: [216.228.150.150]
-        optional: true
+****  Change Machine Name   
+           -> edit /etc/hostname file
+           -> edit /etc/hosts file - make sure there are no references to old name.
 
 
 ****  Fixed IP address  
+
+   root@localhost:/# cat /etc/netplan/01-netcfg.yaml
+
+   network:
+      version: 2
+      renderer: networkd
+      ethernets:
+         eth8:
+            dhcp4: no
+            dhcp6: no
+            addresses: [172.19.184.100/24]
+            gateway4: 172.19.184.1
+            nameservers:
+                addresses: [216.228.150.150]
+            optional: true
+
+
+****  Stop Ubuntu from renaming ethernet ports
+   add the following to the linux boot args
+
+   net.ifnames=0 
+
+
+****  mount an NFS Share:
+
+    mount -t nfs 192.168.1.15:/scratch  -o rw -o nolock /mnt
+
+
+****  ISOLCPU for 
+    https://unix.stackexchange.com/questions/336017/how-to-detect-if-isolcpus-is-activated 
+
+    add the following to the linux boot args
+        isolcpus=20,21,22,23
+
+    check once system boots:
+
+        $cat /proc/cmdline 
+
+        $cat /proc/$$/status|tail -6
+
+
+
+
+
 

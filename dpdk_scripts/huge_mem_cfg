@@ -5,31 +5,39 @@ echo "* Before  "
 echo "******************"
 cat /proc/meminfo |grep -i Huge 
 
+
+#MOUNT_DIR=/mnt/huge
+MOUNT_DIR=/huge
+
+
 echo ""
 echo "******************"
-echo "* Test if /mnt/huge exits.  Create if not present"
+echo "* Test if $MOUNT_DIR exits.  Create if not present"
 echo "******************"
 
-if [ ! -d /mnt/huge ] ; then
-	echo "Creating /mnt/huge"
-	mkdir -p /mnt/huge
+
+if [ ! -d $MOUNT_DIR ] ; then
+    echo "Creating $MOUNT_DIR"
+    mkdir -p $MOUNT_DIR
 else
-	echo " file /mnt/huge exists" 
+    echo " file $MOUNT_DIR exists" 
 fi
 
 
 echo ""
 echo "******************"
-echo "* test if hugetlbs has been mounted to /mnt/huge"
+echo "* test if hugetlbs has been mounted to $MOUNT_DIR"
 echo "******************"
-TST_MOUNT=$(mount |grep -i /mnt/huge)
+TST_MOUNT=$(mount |grep -i $MOUNT_DIR)
 echo   "--- TST_MOUNT:   $TST_MOUNT"
 if [ "$TST_MOUNT"  == "" ] ; then
-	echo "** creating mount for hugetlbs *** "
-        mount -t hugetlbfs nodev /mnt/huge
+    echo "** creating mount for hugetlbs *** "
+    mount -t hugetlbfs nodev $MOUNT_DIR
 else
-      echo  "-- nodev has been mounted to /mnt/huge --"
+  echo  "-- nodev has been mounted to $MOUNT_DIR --"
 fi
+
+#------------------------------------------------------
 
 echo ""
 echo "******************"

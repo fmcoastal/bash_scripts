@@ -16,3 +16,13 @@ src.ip  100.10.0.1
 src.port  11
 
 
+# default <port0> <port1> /* For Dual Interface*/
+# src.ip.min 192.168.18.1
+# src.ip.max 192.168.18.100
+# src.ip.inc 1
+# tx.size <pkt size>
+# tx.percent <tx_rate>
+# start
+
+
+

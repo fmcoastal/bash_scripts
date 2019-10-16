@@ -6,49 +6,50 @@ echo "*****************************************"
 }
 
 TARGET=cn96xx_CRB
+#PROGRAM_NAME=dpdk-devbind.py
+PROGRAM_NAME=dpdk-devbind
 
-
-#dpdk-devbind.py  --status
+#$PROGRAM_NAME  --status
 
 if [ "$TARGET" == "cn91xx" ] ; then 
 
  banner "show interfaces we are interested in .."
- dpdk-devbind.py  --status | grep  0001:01:00\.[12] 
+ $PROGRAM_NAME  --status | grep  0001:01:00\.[12] 
 
  banner " unbinding 0001:01:00.1"
- dpdk-devbind.py  -u 0001:01:00.1 
+ $PROGRAM_NAME  -u 0001:01:00.1 
  banner " unbinding 0001:01:00.2"
- dpdk-devbind.py  -u 0001:01:00.2 
+ $PROGRAM_NAME  -u 0001:01:00.2 
 
 
  banner " bind  0001:01:00.1 to dpdk driver"
- dpdk-devbind.py  --bind=vfio-pci   0001:01:00.1 
+ $PROGRAM_NAME  --bind=vfio-pci   0001:01:00.1 
  banner " bind  0001:01:00.2 to dpdk driver"
- dpdk-devbind.py  --bind=vfio-pci   0001:01:00.2 
+ $PROGRAM_NAME  --bind=vfio-pci   0001:01:00.2 
 
 elif  [ "$TARGET" == "cn96xx_CRB" ] ; then
 
   banner "show interfaces we are interested in .."
-  dpdk-devbind.py  --status | grep  0002:0[2345]:00\.0
+  $PROGRAM_NAME  --status | grep  0002:0[2345]:00\.0
 
   banner "  unbinding 0002:02:00.0"
-  dpdk-devbind.py  -u 0002:02:00.0
+  $PROGRAM_NAME  -u 0002:02:00.0
   banner "  unbinding 0002:03:00.0"
-  dpdk-devbind.py  -u 0002:03:00.0
+  $PROGRAM_NAME  -u 0002:03:00.0
   banner "  unbinding 0002:04:00.0"
-  dpdk-devbind.py  -u 0002:04:00.0
+  $PROGRAM_NAME  -u 0002:04:00.0
   banner "  unbinding 0002:05:00.0"
-  dpdk-devbind.py  -u 0002:05:00.0
+  $PROGRAM_NAME  -u 0002:05:00.0
 
 
   banner " bind  0002:02:00.0 to dpdk driver"
-  dpdk-devbind.py  --bind=vfio-pci   0002:02:00.0
+  $PROGRAM_NAME  --bind=vfio-pci   0002:02:00.0
   banner " bind  0002:03:00.0 to dpdk driver"
-  dpdk-devbind.py  --bind=vfio-pci   0002:03:00.0
+  $PROGRAM_NAME  --bind=vfio-pci   0002:03:00.0
   banner " bind  0002:04:00.0 to dpdk driver"
-  dpdk-devbind.py  --bind=vfio-pci   0002:04:00.0
+  $PROGRAM_NAME  --bind=vfio-pci   0002:04:00.0
   banner " bind  0002:05:00.0 to dpdk driver"
-  dpdk-devbind.py  --bind=vfio-pci   0002:05:00.0
+  $PROGRAM_NAME  --bind=vfio-pci   0002:05:00.0
 
 
 else
@@ -57,6 +58,6 @@ else
 
 fi
 
- banner " Print dpdk-devbind.py --status"
-#dpdk-devbind.py  --status | grep  0001:01:00\.[12] 
-#dpdk-devbind.py  --status  
+ banner " Print $PROGRAM_NAME --status"
+#$PROGRAM_NAME  --status | grep  0001:01:00\.[12] 
+#$PROGRAM_NAME  --status  

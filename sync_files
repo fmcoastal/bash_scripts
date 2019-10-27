@@ -1,0 +1,157 @@
+#!/bin/bash
+# this scripts takes two directories and compares the files in 
+# the two directories using md5sum.  
+#  The master directory, REFERENCE_DIR, is the "master Directory"  
+# If there are extra files in the WORK_DIR, that is okay, and not checked
+# TO get a verbose output, add "v" as a command line argument.  
+
+######################
+# BASE_DIR,SDK_DIR,TARTET_DIR are to shorten the TARGET_DIR
+SDK_DIR=SDK10.1.1.0-PR1
+OUTPUT_DIR=cn96xx-release-output
+BASE_DIR=/home/fsmith/marvell/sdk/$SDK_DIR/$OUTPUT_DIR
+
+
+
+REFERENCE_DIR=/home/fsmith/fs_dpdk/fs_test
+WORK_DIR=$BASE_DIR/build/dpdk/examples/l3fwd
+
+
+
+#################### 
+# Output Manipulations
+BLACK=$'\e[30m'
+RED=$'\e[31m'
+GREEN=$'\e[32m'
+YELLOW=$'\e[33m'
+BLUE=$'\e[34m'
+MAGENTA=$'\e[35m'
+CYAN=$'\e[36m'
+GRAY=$'\e[37m'
+WHITE=$'\e[0m'
+
+NORMAL=$'\e[0m'
+BOLD=$'\e[1m'
+UNDERLINE=$'\e[4m'
+BLINK=$'\e[5m'
+INVERT=$'\e[7m'
+
+#   banner()
+banner() {
+echo ""
+echo "********"
+echo "* $1"
+echo "********"
+}
+
+
+#echo $1
+VERBOSE=0
+if [ "$1" == "v" ] || [ "$1" == "V" ] || [ "$2" == "v" ] || [ "$1" == "2" ]
+then 
+    VERBOSE=1
+fi
+
+
+
+if [ $VERBOSE != 0 ] ; then
+    echo ""
+    echo $CYAN
+    echo "REFERENCE_DIR: $REFERENCE_DIR"
+    ls -la $REFERENCE_DIR
+    echo ""
+
+    echo "WORK_DIR: $WORK_DIR"
+    ls -la $WORK_DIR
+    echo $NORMAL
+    echo ""
+fi
+
+LAST_DIR=$PWD
+cd $REFERENCE_DIR
+
+banner " list the files in the target dir"
+#FILE_LIST=$(find .  -type f -name "*dpdk*" -print)
+FILE_LIST=$(find .  \( -name "*[chS]" -o -name "Makefile" -o -name "*.mk" \)  -print)
+
+
+
+# FILE_LIST is a text file with 0x0a as line feeds.  If
+# you ' echo $FILE_LIST '  the 0x0a get printed as a space
+# if [ $VERBOSE != 0 ] ; then
+    echo "$CYAN"
+    echo "*********"
+    echo "* Reference Files: "
+    echo "*********"
+    echo $FILE_LIST
+    echo "*** end FILE_LIST ***"
+    echo "$WHITE"
+#/ fi
+
+FLAG=0
+
+# IFS stands for "internal field separator". It is used by
+#   the shell to determine how to do word splitting, i. e. how
+#   to recognize word boundaries.  so we will set it to space
+#   and read the File List into it
+# also:
+#  https://stackoverflow.com/questions/11393817/read-lines-from-a-file-into-a-bash-array
+
+#IFS='\n' read -r -a FILE_NAMES <<< "$FILE_LIST"
+IFS='\n'  GLOBIGNORE='*' command eval
+
+# read each of the lines
+for line in $FILE_LIST ; do
+
+    WORK_DIR_FILE=$(md5sum $WORK_DIR/$line)  
+    WORK_DIR_FILE=$(echo   $WORK_DIR_FILE | awk '{print $1}' )
+    REFERENCE_DIR_FILE=$(md5sum $REFERENCE_DIR/$line)
+    REFERENCE_DIR_FILE=$(echo $REFERENCE_DIR_FILE | awk '{print $1}' )   
+#
+    if [ $VERBOSE != 0 ] ; then
+        echo "*********"
+        echo "$line:"
+        echo "* WORK_DIR file:      $WORK_DIR_FILE"
+        echo "* REFERENCE_DIR file: $REFERENCE_DIR_FILE"
+    fi
+   
+#   echo " -- flag:$flag  line: $line"
+    if [ $REFERENCE_DIR_FILE  == $WORK_DIR_FILE ] ; then
+        if [ $VERBOSE != 0 ] ; then
+            echo "$CYAN --- Files ARE the same : $line $NORMAL "
+        fi
+
+    elif  [ "$WORK_DIR_FILE"  == "" ] ; then
+        echo "$RED --- No file lacated in working Directory:$NORMAL   $line"
+
+    elif  [ $REFERENCE_DIR_FILE  != $WORK_DIR_FILE ] ; then 
+        echo "$GREEN --- Files are NOT the same  SAME : $line $NORMAL "
+
+#        echo "Transfer $line to $REFERENCE_DIR ?"
+        read -p "Transfer $line to $REFERENCE_DIR ? [Y]/n: " ANS ; 
+        echo $ANS
+        if [ "$ANS" == "y" ] || [ "$ANS" == "Y" ] || [ "$ANS" == "" ]
+        then
+            echo "cp $WORK_DIR/$line $REFERENCE_DIR/$line"
+            cp $WORK_DIR/$line $REFERENCE_DIR/$line
+               
+        else
+            echo "$RED Not transfering File: $line  $NORMAL"
+        fi
+        FLAG=1
+    fi
+
+done
+
+cd $LAST_DIR
+
+if [ $FLAG == 0 ] ; then 
+    echo "$GREEN All files are Identical $NORMAL"
+fi
+echo "Done!"
+
+exit
+
+
+
+

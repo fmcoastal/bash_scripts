@@ -164,4 +164,38 @@ L3FWD: entering main loop on lcore 22
 L3FWD:  -- lcoreid=22 portid=4 rxqueueid=0
 
 
+cn96xx-crb
+
+ dpdk-l2fwd -c 0xf -n 4 -- -q 1 -p 3c -T 1
+
+ox3c gets me ports 2,3,4,5
+
+Ports on the board:
+
+
+ /*   output of dpdk-devbind -s for crb96xx
+  7 0002:02:00.0 'Device a063' if=eth0 drv=octeontx2-nicpf unused=vfio-pci
+  8 0002:03:00.0 'Device a063' if=eth1 drv=octeontx2-nicpf unused=vfio-pci
+  9 0002:04:00.0 'Device a063' if=eth2 drv=octeontx2-nicpf unused=vfio-pci
+ 10 0002:05:00.0 'Device a063' if=eth3 drv=octeontx2-nicpf unused=vfio-pci
+ 11 0002:06:00.0 'Device a063' if=eth4 drv=octeontx2-nicpf unused=vfio-pci
+ 12 0002:07:00.0 'Device a063' if=eth5 drv=octeontx2-nicpf unused=vfio-pci
+ 13 0002:08:00.0 'Device a063' if=eth6 drv=octeontx2-nicpf unused=vfio-pci
+ 14 0002:09:00.0 'Device a063' if=eth7 drv=octeontx2-nicpf unused=vfio-pci
+
+
+   7  5  3
+ 0 6  4  2  1
+
+
+
+./l3fwd -c 0xf00000 -w 0002.04.00.0  -w 0002.05.00.0  -w 0002.06.00.0  -w 0002.07.00.0,scalar_enable=1   -n 4 -- -P -p 0x3c --config="(2, 0, 20),(3, 0,21),(4, 0,22),(5, 0,23)"
+
+./l3fwd -c 0x700000 -w 0002:04:00.0 -w 0002:06:00.0 -w 0002:07:00.0 -n 4 -- -P -L -p 0x07 --config="(0,0,20),(1,0,21),(2,0,22)"
+
+./l3fwd -c 0x700000 -w 0002:04:00.0,scalar_enable=1  -w 0002:06:00.0 -w 0002:07:00.0 -n 4 -- -P -L -p 0x07 --config="(0,0,20),(1,0,21),(2,0,22)"
+
+
+
+
 

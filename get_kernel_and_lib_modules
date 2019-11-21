@@ -2,9 +2,9 @@
 
 #TARGET=DOUBLE_SHOT
 #TARGET=SINGLE_SHOT
-#TARGET=CN83XX
+TARGET=CN83XX
 #TARGET=CN9130
-TARGET=CN96XX
+#TARGET=CN96XX
 #TARGET=A3900
 
 ######################
@@ -12,7 +12,9 @@ TARGET=CN96XX
 
 #BASE_DIR=/sdk/SDK19061
 #BASE_DIR=/sdk/SDK190603/SDK10.0_19.06.3-src
-BASE_DIR=/home/fsmith/marvell/sdk/sdk10_ed1003_with_dpdk/SDK10.0-ED1003-DPDK/sdk
+#BASE_DIR=/home/fsmith/marvell/sdk/sdk10_ed1003_with_dpdk/SDK10.0-ED1003-DPDK/sdk
+BASE_DIR=/home/fsmith/marvell/sdk/PR2003
+
 
 
 ######################
@@ -22,11 +24,11 @@ ROOTFS_FILE=rootfs.tar
 ######################
 #filename created by script containing Image and .dtb files.
 # the contents of this should be placed in /boot of your filesystem.
-BOOT_FILES=image.tgz
+BOOT_FILES=image.tar
 ######################
 #filename created by script containing kernel module  files.
 # the contents of this should be exploded at / in your filesystem
-LIB_FILES=lib.tgz
+LIB_FILES=lib.tar
 
 
 
@@ -144,9 +146,14 @@ banner "  tar - up  $BOOT_FILES  "
 
 if [ "$TARGET" == "CN83XX" ] || [ "$TARGET" == "CN96XX" ] ;  then
 # old cavium tool chain does not put the "Image" file in \boot directory
- tar -czvf $BOOT_FILES  -C $BASE_DIR/$OUTPUT_DIR/images Image
+ tar -cvf $BOOT_FILES  -C $BASE_DIR/$OUTPUT_DIR/images Image
+ tar -rvf $BOOT_FILES  -C $BASE_DIR/$OUTPUT_DIR/images   $BASE_DIR/$OUTPUT_DIR/images/*.img
+
+echo "$BOOT_FILES:"
+tar -tvf $BOOT_FILES
+
 else
- tar -czvf $BOOT_FILES --directory  $TEMP_DIR/boot .
+ tar -cvf $BOOT_FILES --directory  $TEMP_DIR/boot .
 fi
 md5sum=$(md5sum $BOOT_FILES)
 echo $md5sum > "$BOOT_FILES".md5 
@@ -154,7 +161,7 @@ echo $md5sum > "$BOOT_FILES".md5
 
 
 banner "  tar - up  $LIB_FILES  "
-tar -czvf $LIB_FILES --directory $TEMP_DIR  lib/modules/.
+tar -cvf $LIB_FILES --directory $TEMP_DIR  lib/modules/.
 md5sum=$(md5sum $LIB_FILES)
 echo $md5sum > "$LIB_FILES".md5 
 

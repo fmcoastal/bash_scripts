@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ISO_IMAGE=ubuntu-18.04.2-server-arm64.iso
+ISO_IMAGE=ubuntu-18.04.3-server-arm64.iso
 ISO_IMAGE_URL=http://cdimage.ubuntu.com/releases/18.04/release
 
 ROOTFS_DIR=rootfs

@@ -30,26 +30,45 @@ if [ "$TARGET" == "cn91xx" ] ; then
 elif  [ "$TARGET" == "cn96xx_CRB" ] ; then
 
   banner "show interfaces we are interested in .."
-  $PROGRAM_NAME  --status | grep  0002:0[2345]:00\.0
+  $PROGRAM_NAME  --status | grep  0002:0[467]:00\.0
 
-  banner "  unbinding 0002:02:00.0"
-  $PROGRAM_NAME  -u 0002:02:00.0
-  banner "  unbinding 0002:03:00.0"
-  $PROGRAM_NAME  -u 0002:03:00.0
+#  banner "  unbinding 0002:02:00.0"
+#  $PROGRAM_NAME    -u 0002:02:00.0
+#  banner "  unbinding 0002:03:00.0"
+#  $PROGRAM_NAME    -u 0002:03:00.0
   banner "  unbinding 0002:04:00.0"
-  $PROGRAM_NAME  -u 0002:04:00.0
-  banner "  unbinding 0002:05:00.0"
-  $PROGRAM_NAME  -u 0002:05:00.0
+  $PROGRAM_NAME    -u 0002:04:00.0
+#  banner "  unbinding 0002:05:00.0"
+#  $PROGRAM_NAME    -u 0002:05:00.0
+  banner "  unbinding 0002:06:00.0"
+  $PROGRAM_NAME    -u 0002:06:00.0
+  banner "  unbinding 0002:07:00.0"
+  $PROGRAM_NAME    -u 0002:07:00.0
+#  banner "  unbinding 0002:08:00.0"
+#  $PROGRAM_NAME    -u 0002:08:00.0
+#  banner "  unbinding 0002:09:00.0"
+#  $PROGRAM_NAME    -u 0002:09:00.0
+ 
 
 
-  banner " bind  0002:02:00.0 to dpdk driver"
-  $PROGRAM_NAME  --bind=vfio-pci   0002:02:00.0
-  banner " bind  0002:03:00.0 to dpdk driver"
-  $PROGRAM_NAME  --bind=vfio-pci   0002:03:00.0
+#  banner " bind  0002:02:00.0 to dpdk driver"
+#  $PROGRAM_NAME  --bind=vfio-pci   0002:02:00.0
+#  banner " bind  0002:03:00.0 to dpdk driver"
+#  $PROGRAM_NAME  --bind=vfio-pci   0002:03:00.0
   banner " bind  0002:04:00.0 to dpdk driver"
   $PROGRAM_NAME  --bind=vfio-pci   0002:04:00.0
-  banner " bind  0002:05:00.0 to dpdk driver"
-  $PROGRAM_NAME  --bind=vfio-pci   0002:05:00.0
+#  banner " bind  0002:05:00.0 to dpdk driver"
+#  $PROGRAM_NAME  --bind=vfio-pci   0002:05:00.0
+  banner " bind  0002:06:00.0 to dpdk driver"
+  $PROGRAM_NAME  --bind=vfio-pci   0002:06:00.0
+  banner " bind  0002:07:00.0 to dpdk driver"
+  $PROGRAM_NAME  --bind=vfio-pci   0002:07:00.0
+#  banner " bind  0002:08:00.0 to dpdk driver"
+#  $PROGRAM_NAME  --bind=vfio-pci   0002:08:00.0
+#  banner " bind  0002:09:00.0 to dpdk driver"
+#  $PROGRAM_NAME  --bind=vfio-pci   0002:09:00.0
+
+
 
 
 else

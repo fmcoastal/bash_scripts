@@ -1,0 +1,25 @@
+export ARCH=arm64
+export CROSS_COMPILE=/sdk/sdk/SDK10.1.1.0-PR1/toolchain/marvell-tools-238.0/bin/aarch64-marvell-linux-gnu-
+export RTE_KERNELDIR=/home/fsmith/marvell/sdk/SDK10.1.1.0-PR1/cn96xx-release-output/build/linux-custom/
+export RTE_SDK=$PWD
+export RTE_TARGET=build
+
+echo "   "
+echo " Create a .config file...  "
+echo "   from the <RTE_SDK> directory, run:  "
+echo "  1)  make config T=arm64-thunderx-linuxapp-gcc"
+
+echo "   "
+echo " Modify the  .config file...  "
+echo "   "
+echo "  2) Remove libpcap  dependency ..."
+echo "       sed -ri 's,(PMD_PCAP=).*,\1y,' build/.config "
+echo "   "
+echo "  3) Remove \"NUMA\"  dependency ..."
+echo "       Edit the <DPDK_BASE>/build/.compile file "
+echo "       Comment out lines with : "
+echo "          CONFIG_RTE_MAX_NUMA_NODES"
+echo "          RTE_LIBRTE_VHOST_NUMA"
+echo "          CONFIG_RTE_LIBRTE_VHOST_NUMA"
+echo "   "
+

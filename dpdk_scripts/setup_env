@@ -1,8 +1,20 @@
+#!/bin/bash
+
+echo "export ARCH=arm64"
 export ARCH=arm64
-export CROSS_COMPILE=/sdk/sdk/SDK10.1.1.0-PR1/toolchain/marvell-tools-238.0/bin/aarch64-marvell-linux-gnu-
-export RTE_KERNELDIR=/home/fsmith/marvell/sdk/SDK10.1.1.0-PR1/cn96xx-release-output/build/linux-custom/
-export RTE_SDK=$PWD
-export RTE_TARGET=build
+
+echo "export CROSS=/sdk/sdk/SDK-10.1.1.0/toolchain/marvell-tools-238.0/bin/aarch64-marvell-linux-gnu-"
+      export CROSS=/sdk/sdk/SDK-10.1.1.0/toolchain/marvell-tools-238.0/bin/aarch64-marvell-linux-gnu-
+
+
+echo "export RTE_KERNELDIR=/home/fsmith/marvell/sdk/SDK-10.1.1.0/cn96xx-release-output/build/linux-custom/"
+      export RTE_KERNELDIR=/home/fsmith/marvell/sdk/SDK-10.1.1.0/cn96xx-release-output/build/linux-custom/
+
+echo "export RTE_SDK=$PWD"
+      export RTE_SDK=$PWD
+
+echo  "export RTE_TARGET=build"
+       export RTE_TARGET=build
 
 echo "   "
 echo " Create a .config file...  "

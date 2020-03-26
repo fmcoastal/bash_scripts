@@ -26,6 +26,8 @@
 */
 
 #define WAI() printf("%d-%s:%s\n",__LINE__,__FILE__,__FUNCTION__)
+
+#define INDENT_SIZE 3
 #define INDENT(x) \
     char s[64]= {0};\
     int i;\
@@ -69,10 +71,57 @@ static char * GetNextColor(void)
 #define  NEXT_COLOR() printf("%s",GetNextColor()); 
 #define  WHITE() printf("%s",C_WHITE); 
 
+
+
+/** Information for a given RSS type. */
+ struct rss_type_info {
+         const char *str; /**< Type name. */
+         uint64_t rss_type; /**< Type value. */
+ };
+
+
+static const struct rss_type_info rss_type_table[] = {
+        { "all", ETH_RSS_IP | ETH_RSS_TCP |
+                        ETH_RSS_UDP | ETH_RSS_SCTP |
+                        ETH_RSS_L2_PAYLOAD },
+        { "none", 0 },
+        { "ipv4", ETH_RSS_IPV4 },
+        { "ipv4-frag", ETH_RSS_FRAG_IPV4 },
+        { "ipv4-tcp", ETH_RSS_NONFRAG_IPV4_TCP },
+        { "ipv4-udp", ETH_RSS_NONFRAG_IPV4_UDP },
+        { "ipv4-sctp", ETH_RSS_NONFRAG_IPV4_SCTP },
+        { "ipv4-other", ETH_RSS_NONFRAG_IPV4_OTHER },
+        { "ipv6", ETH_RSS_IPV6 },
+        { "ipv6-frag", ETH_RSS_FRAG_IPV6 },
+        { "ipv6-tcp", ETH_RSS_NONFRAG_IPV6_TCP },
+        { "ipv6-udp", ETH_RSS_NONFRAG_IPV6_UDP },
+        { "ipv6-sctp", ETH_RSS_NONFRAG_IPV6_SCTP },
+        { "ipv6-other", ETH_RSS_NONFRAG_IPV6_OTHER },
+        { "l2-payload", ETH_RSS_L2_PAYLOAD },
+        { "ipv6-ex", ETH_RSS_IPV6_EX },
+        { "ipv6-tcp-ex", ETH_RSS_IPV6_TCP_EX },
+        { "ipv6-udp-ex", ETH_RSS_IPV6_UDP_EX },
+        { "port", ETH_RSS_PORT },
+        { "vxlan", ETH_RSS_VXLAN },
+        { "geneve", ETH_RSS_GENEVE },
+        { "nvgre", ETH_RSS_NVGRE },
+        { "ip", ETH_RSS_IP },
+        { "udp", ETH_RSS_UDP },
+        { "tcp", ETH_RSS_TCP },
+        { "sctp", ETH_RSS_SCTP },
+        { "tunnel", ETH_RSS_TUNNEL },
+        { NULL, 0 },
+};
+
+
+
+
+
+
 /*  
  *   COnverts an IP address into a printable string
  */
-//static inline char * format_ip_addr(char * str,uint32_t ip);
+static inline char * format_ip_addr(char * str,uint32_t ip);
 static inline char * format_ip_addr(char * str,uint32_t ip)
 {
    sprintf(str,"%d.%d.%d.%d",((ip >> 24)&0xff),((ip >> 16)&0xff),((ip >> 8)&0xff),((ip >> 0)&0xff));
@@ -82,7 +131,7 @@ static inline char * format_ip_addr(char * str,uint32_t ip)
 /*  
  *   converts a ethernet address into a printable String
  */
-//static inline char * format_mac_addr(char * str,struct rte_ether_addr *m);
+static inline char * format_mac_addr(char * str,struct rte_ether_addr *m );
 static inline char * format_mac_addr(char * str,struct rte_ether_addr *m )
 {
    sprintf(str,"%02x:%02x:%02x:%02x:%02x:%02x",m->addr_bytes[0]
@@ -107,14 +156,25 @@ static inline void PrintMac(unsigned int portid, struct rte_ether_addr *m)
 }
 
 
+#undef  PRINT_BUFF_SHORT
+
+#ifdef PRINT_BUFF_SHORT
+#define PrintBuff( x, y) PrintBuffShort(x,y)
+#else
+#define PrintBuff( x, y) PrintBuffLong(x,y,0)
+#endif
+
+
+
 
 /*  
  *  dumps a character buffer to the screen
  */
-//static inline void PrintBuff(char * ptr , int sz);
-static inline void PrintBuff(char * ptr , int sz)
+#ifdef PRINT_BUFF_SHORT
+static inline void PrintBuffShort(uint8_t * ptr , int32_t sz);
+static inline void PrintBuffShort(uint8_t * ptr , int32_t sz)
 {
-  int index;
+  int32_t index;
 
   for ( index = 0 ; index  < sz ; index++)
   {
@@ -126,9 +186,176 @@ static inline void PrintBuff(char * ptr , int sz)
 }
 
 
-#define INDENT_SIZE 3
+#else
+#define LLU long long unsigned
+#define fsprint printf
 
-//static inline void Print_rte_memzone( int indent, const struct rte_memzone *m);
+static inline void PrintBuffLong(uint8_t * buffer, int32_t bufferSize,uint8_t * Address)
+{
+    uint8_t * tmpptr0  = buffer; 
+    uint8_t * tmpptr1  = tmpptr0; 
+    int64_t  i          = 0 ;
+    int64_t  m          = 0 ;
+    int64_t  n          = 0 ;
+    int64_t  j          = 0 ;
+    int64_t  PrintCount = 0 ;   // used as counter to denote when to print \nadderss
+    int64_t  BlankCnt   = 0 ;
+   
+    
+    // align the lead
+    BlankCnt = (unsigned long)Address & 0x000000000f;
+    
+    // print the lead
+    if( BlankCnt != 0)  // if 0 jump to main body 
+    {        
+        for ( PrintCount = 0 ; PrintCount < BlankCnt ; PrintCount++ )
+        {
+            if( PrintCount == 0) // space between fields
+            {
+                fsprint("\n%016x",(unsigned)((unsigned long)Address & ~0x000000000f)); 
+                tmpptr1 = tmpptr0;
+            }
+            if( (PrintCount % 8) == 0)
+            {
+                fsprint(" ");
+            }    
+            fsprint("   ");
+        }
+        PrintCount--;  // remove last increment of printcount
+        // print PrintCount data
+        for ( m = 0  ; (PrintCount < 0xf) && (i < bufferSize); i++, m++,PrintCount++)
+        {
+            if(PrintCount % 8 == 0)
+            {
+                fsprint(" ");
+            }    
+            fsprint(" %02x",(unsigned char)(*tmpptr0++));
+            Address++;
+        }
+        
+        // special case here when count is less than one line and not starting at zero
+        if ( i == bufferSize) 
+        {
+            // print out the last space 
+            for (      ; (PrintCount < 0x0f) ; PrintCount++ )
+            {
+                if( PrintCount  % 8 == 0)
+                {
+                    fsprint(" ");
+                }    
+                fsprint("   ");
+            }
+            // print PrintCount text space
+            for ( PrintCount = 0 ; (PrintCount < BlankCnt) ; PrintCount++ )
+            {
+                if( PrintCount == 0)   // space between fields 
+                {
+                    fsprint(" ");
+                }
+                else if( PrintCount  % 8 == 0)
+                {
+                    fsprint(" ");
+                }    
+                fsprint(" ");
+            }             
+            // print PrintCount characters
+            for( n = 0 ; (n < m) ; n++)
+            {
+                if( n == 0 ) printf(" ");
+                if((*tmpptr1 >=0x20) && (*tmpptr1 <= 0x7e))
+                    fsprint("%c",*tmpptr1);
+                else
+                    fsprint(".");
+                tmpptr1++;
+            }
+            printf("\n");
+            return;
+        } // end i == bufferSize
+        
+        // print PrintCount text space
+        for ( PrintCount = 0 ; (PrintCount < BlankCnt) ; PrintCount++ )
+        {
+            if( PrintCount == 0)   // space between fields 
+            {
+                fsprint(" ");
+            }
+            else if( PrintCount  % 8 == 0)
+            {
+                fsprint(" ");
+            }    
+            fsprint(" ");
+        }
+        // print PrintCount characters
+        n = 0;
+        for( n = 0 ; (PrintCount <= 0xf) && (n < m) ; n++,PrintCount++)
+        {
+            if((*tmpptr1 >=0x20) && (*tmpptr1 <= 0x7e))
+                fsprint("%c",*tmpptr1);
+            else
+                fsprint(".");
+            tmpptr1++;
+        }
+    }
+    
+    // print the body    
+    PrintCount = 0;
+    for (   ; i < bufferSize ; i++)
+    {
+        if( PrintCount == 0 )
+        {
+            fsprint("\n%016llx",((LLU)Address & ~0x0f));
+            tmpptr1 = tmpptr0;
+        }
+        if(PrintCount % 8 == 0)
+        {
+            fsprint(" ");
+        }
+        fsprint(" %02x",(unsigned char)(*tmpptr0++));
+        Address++;
+        PrintCount ++;
+        if( PrintCount  > 0x0f)  
+        {
+            PrintCount = 0;
+            for( j = 0 ; j < 16 ; j++)
+            {
+                if( j == 0 ) printf("  ");
+                if((*tmpptr1 >=0x20) && (*tmpptr1 <= 0x7e))
+                    fsprint("%c",*tmpptr1);
+                else
+                    fsprint(".");
+                tmpptr1++;
+            }
+        }
+    }
+    
+    // print out the last space 
+    m = PrintCount;
+    for (      ; (PrintCount <= 0x0f) ; PrintCount++ )
+    {
+        if( PrintCount  % 8 == 0)
+        {
+            fsprint(" ");
+        }    
+        fsprint("   ");
+    }
+    
+    // print PrintCount characters
+    for( n = 0 ; (n < m) ; n++)
+    {
+        if( n == 0 ) printf("  ");
+        if((*tmpptr1 >=0x20) && (*tmpptr1 <= 0x7e))
+            fsprint("%c",*tmpptr1);
+        else
+            fsprint(".");
+        tmpptr1++;
+    }
+    fsprint("\n");
+}
+
+#endif
+
+
+static inline void Print_rte_memzone(int indent, const struct rte_memzone *m);
 static inline void Print_rte_memzone(int indent, const struct rte_memzone *m)
 {
     INDENT(indent);
@@ -149,7 +376,7 @@ static inline void Print_rte_memzone(int indent, const struct rte_memzone *m)
 }
 
 
-//static inline void Print_rte_mempool_cache( struct ret_mempool_cache *m);
+static inline void Print_rte_mempool_cache(int indent,  struct rte_mempool_cache *m);
 static inline void Print_rte_mempool_cache(int indent,  struct rte_mempool_cache *m)
 {  
     INDENT(indent);
@@ -168,7 +395,7 @@ static inline void Print_rte_mempool_cache(int indent,  struct rte_mempool_cache
             
             
 
-//static inline void Print_rte_mempool( struct ret_mempool *m);
+static inline void Print_rte_mempool(int indent, struct rte_mempool * m);
 static inline void Print_rte_mempool(int indent, struct rte_mempool * m)
 {
    INDENT(indent);
@@ -201,10 +428,12 @@ static inline void Print_rte_mempool(int indent, struct rte_mempool * m)
 
 
 /*  
- *  dumps a rte_mbuff to the screen
+ *  dumps the packet data in an rte_mbuff to the screenxi
+ *
+ *  https://doc.dpdk.org/guides/prog_guide/mbuf_lib.html
  */
-//static inline void print_rte_mbuf( struct rte_mbuf *m);
-static inline void Print_rte_mbuf(int indent, struct rte_mbuf *m)
+static inline void Print_rte_mbuf_pkt(int indent, struct rte_mbuf *m);
+static inline void Print_rte_mbuf_pkt(int indent, struct rte_mbuf *m)
 {
     struct rte_ether_hdr *eth_hdr;
     char  src_mac[32];
@@ -212,18 +441,8 @@ static inline void Print_rte_mbuf(int indent, struct rte_mbuf *m)
     uint16_t  eth_hdr_type;    // the 16 bits after the Mac Address
     void * l3;
     struct rte_ipv4_hdr *ipv4_hdr;
-//     struct rte_ipv6_hdr *ipv6_hdr;
     INDENT(indent);    
-    //char s[64]= {0};
-    //int i;
-    //for ( i = 0 ; i < (INDENT_SIZE * indent) ; i++) s[i] = ' ';
 
-
-     printf("%s \n",s);
-     printf("%s == rte_mbuf:  %p\n",s,m);
-//  pool information
-     Print_rte_mempool((indent+1),m->pool);
-     printf("%s rte_mempool->next   %p  \n",s,m->next);
 //  the packet date
      eth_hdr = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
      l3 = (uint8_t *)eth_hdr + sizeof(struct rte_ether_hdr);
@@ -242,7 +461,7 @@ static inline void Print_rte_mbuf(int indent, struct rte_mbuf *m)
      else if (eth_hdr_type == RTE_ETHER_TYPE_ARP)
      {
           printf("%s ether_type: arp  0x%04x\n",s,eth_hdr_type);
-          PrintBuff( l3, 32);  // dump the next 32 bytes
+          PrintBuff((uint8_t *)l3, 32);  // dump the next 32 bytes
 
 
      }
@@ -255,7 +474,7 @@ static inline void Print_rte_mbuf(int indent, struct rte_mbuf *m)
 
           ipv4_hdr = (struct rte_ipv4_hdr *)l3;
 
-          PrintBuff( l3, 32);  // dump the next 32 bytes
+          PrintBuff((uint8_t *) l3, 32);  // dump the next 32 bytes
 
           printf("%s L3/IP Hdr:  \n",s);
           format_ip_addr(src_ip,RTE_STATIC_BSWAP32(ipv4_hdr->src_addr));
@@ -265,17 +484,48 @@ static inline void Print_rte_mbuf(int indent, struct rte_mbuf *m)
       }
       else
       {
-          printf("%s unrecognized packet type\n",s);
+          if(m->next == NULL)
+          {
+              printf("%s unrecognized packet type: 0x%04x  size: %d \n",s,eth_hdr_type,rte_pktmbuf_data_len(m));
+              PrintBuff((uint8_t *)eth_hdr,rte_pktmbuf_data_len(m));
+          }          
+          else
+          {
+              
+              printf("%s unrecognized packet type: 0x%04x  1st data size: %d \n",s,eth_hdr_type,rte_pktmbuf_pkt_len(m));
+              PrintBuff((uint8_t *)eth_hdr,rte_pktmbuf_data_len(m));
+ 
+          }
       }
+}
+
+
+
+
+/*  
+ *  dumps a rte_mbuff to the screeni
+ *
+ *  https://doc.dpdk.org/guides/prog_guide/mbuf_lib.html
+ */
+static inline void Print_rte_mbuf(int indent, struct rte_mbuf *m);
+static inline void Print_rte_mbuf(int indent, struct rte_mbuf *m)
+{
+//     struct rte_ipv6_hdr *ipv6_hdr;
+    INDENT(indent);    
+
+     printf("%s \n",s);
+     printf("%s == rte_mbuf:  %p\n",s,m);
+//  pool information
+     Print_rte_mempool((indent+1),m->pool);
+     printf("%s rte_mempool->next   %p  \n",s,m->next);
+//  the packet date
+     Print_rte_mbuf_pkt( indent+1, m);
 }
 
 static inline void print_rte_eth_dev_portconf( int indent, struct rte_eth_dev_portconf *d);
 static inline void print_rte_eth_dev_portconf( int indent, struct rte_eth_dev_portconf *d)
 {
    INDENT(indent);
-  //  char s[64]= {0};
-  // int i;
-  // for ( i = 0 ; i < (INDENT_SIZE * indent) ; i++) s[i] = ' ';
 
    printf("%s struct rte_eth_dev_portconf { \n",s);
    printf("%s burst_size: 0x%02x\n",s,d->burst_size);
@@ -286,13 +536,55 @@ static inline void print_rte_eth_dev_portconf( int indent, struct rte_eth_dev_po
 }
  
 
+static inline void print_rte_eth_rxmode( int indent, struct rte_eth_rxmode *d);
+static inline void print_rte_eth_rxmode( int indent, struct rte_eth_rxmode *d)
+{
+   INDENT(indent);
+
+   printf("%s rte_eth_rxmode { \n",s);
+   printf("%s mq_mode:          0x%02x\n",s,d->mq_mode);
+   printf("%s max_rx_pkt_len:   0x%08x\n",s,d->max_rx_pkt_len);
+   printf("%s max_lro_pkt_size: 0x%08x\n",s,d->max_lro_pkt_size);
+   printf("%s split_hdr_size    0x%04x\n",s,d->split_hdr_size);
+   printf("%s offloads        0x%016lx\n",s,d->offloads);
+   printf("%s reserved_64s[0]        0x%016lx\n",s,d->reserved_64s[0]);
+   printf("%s reserved_64s[1]        0x%016lx\n",s,d->reserved_64s[1]);
+   printf("%s reserved_ptrs[0]        %p\n",s,d->reserved_ptrs[0]);
+   printf("%s reserved_ptrs[1]        %p\n",s,d->reserved_ptrs[1]);
+   printf("%s } \n",s);
+}
+ 
+
+static inline void print_rte_eth_txmode( int indent, struct rte_eth_txmode *d);
+static inline void print_rte_eth_txmode( int indent, struct rte_eth_txmode *d)
+{
+   INDENT(indent);
+
+   printf("%s rte_eth_txmode { \n",s);
+   printf("%s mq_mode:          0x%02x\n",s,d->mq_mode);
+   printf("%s offloads        0x%016lx\n",s,d->offloads);
+   printf("%s pvid              0x%04x\n",s,d->pvid);
+
+   printf("%s hw_vlan_reject_tagged:   0x%02x\n",s,d->hw_vlan_reject_tagged);
+
+   printf("%s reserved_64s[0]        0x%016lx\n",s,d->reserved_64s[0]);
+   printf("%s reserved_64s[1]        0x%016lx\n",s,d->reserved_64s[1]);
+   printf("%s reserved_ptrs[0]        %p\n",s,d->reserved_ptrs[0]);
+   printf("%s reserved_ptrs[1]        %p\n",s,d->reserved_ptrs[1]);
+   printf("%s } \n",s);
+}
+ 
+
+
+
+
+
+
+
 static inline void print_rte_eth_thresh(int indent, struct rte_eth_thresh *d);
 static inline void print_rte_eth_thresh(int indent, struct rte_eth_thresh *d)
 {
    INDENT(indent);
-//   char s[64]= {0};
-//   int i;
-//   for ( i = 0 ; i < (INDENT_SIZE * indent) ; i++) s[i] = ' ';
 
    printf("%s struct rte_eth_thresh { \n",s);
    printf("%s pthresh: 0x%02x\n",s,d->pthresh);
@@ -306,9 +598,6 @@ static inline void print_rte_eth_rxconf( int indent, struct rte_eth_rxconf *d);
 static inline void print_rte_eth_rxconf( int indent, struct rte_eth_rxconf *d)
 {
    INDENT(indent);
-//   char s[64]= {0};
-//   int i;
-//   for ( i = 0 ; i < (INDENT_SIZE * indent) ; i++) s[i] = ' ';
 
    printf("%s struct rte_eth_rxconf { \n"              ,s);
    print_rte_eth_thresh(indent+1,&(d->rx_thresh)); 
@@ -323,9 +612,6 @@ static inline void print_rte_eth_txconf( int indent, struct rte_eth_txconf *d);
 static inline void print_rte_eth_txconf( int indent, struct rte_eth_txconf *d)
 {
    INDENT(indent);
-//   char s[64]= {0};
-//   int  i;
-//   for ( i = 0 ; i < (INDENT_SIZE * indent) ; i++) s[i] = ' ';
 
    printf("%s struct rte_eth_txconf { \n"              ,s);
    print_rte_eth_thresh(indent+1, &(d->tx_thresh)); 
@@ -335,6 +621,153 @@ static inline void print_rte_eth_txconf( int indent, struct rte_eth_txconf *d)
    printf("%s offloads:          0x%016lx \n",s,d->offloads);
    printf("%s } \n",s);
 }
+
+
+static inline void print_rte_eth_vmdq_dcb_conf (int indent, struct rte_eth_vmdq_dcb_conf *d);
+static inline void print_rte_eth_vmdq_dcb_conf (int indent, struct rte_eth_vmdq_dcb_conf *d)
+{
+   INDENT(indent);
+
+   printf("%s struct rte_eth_vmdq_dcb_conf { \n"              ,s);
+   printf("%s nb_queue_pools:           %d\n"   ,s,d->nb_queue_pools);
+   printf("%s enable_default_pool:      0x%02x\n"   ,s,d->enable_default_pool);
+   printf("%s default_pool:             0x%02x\n"   ,s,d->default_pool);
+   printf("%s nb_pool_maps:             0x%02x\n"   ,s,d->nb_pool_maps);
+   printf("%s pool_map array size       0x%02x\n"   ,s,ETH_VMDQ_MAX_VLAN_FILTERS);
+   printf("%s     pool_map[0].vlan_id          0x%04x\n"   ,s,d->pool_map[0].vlan_id);
+   printf("%s     pool_map[0].pools            0x%016lx\n"  ,s,d->pool_map[0].pools);
+   printf("%s dcb_tc  array size        0x%02x\n"   ,s,ETH_DCB_NUM_USER_PRIORITIES);
+   printf("%s     dcb_tc[0]:                0x%02x\n"   ,s,d->dcb_tc[0]);
+   printf("%s } \n",s);
+}
+
+static inline void print_rte_eth_dcb_rx_conf(int indent, struct rte_eth_dcb_rx_conf  *d);
+static inline void print_rte_eth_dcb_rx_conf(int indent, struct rte_eth_dcb_rx_conf  *d)
+{
+   INDENT(indent);
+
+   printf("%s struct rte_eth_dcb_rx_conf { \n"              ,s);
+   printf("%s nb_tcs:                       %d\n"   ,s,d->nb_tcs);
+   printf("%s dcb_tc    size       0x%02x\n"   ,s,ETH_DCB_NUM_USER_PRIORITIES);
+    {
+      int i;
+      for ( i = 0 ; i < ETH_DCB_NUM_USER_PRIORITIES ; i++) 
+      { 
+          if( (  i % 20) == 0 ) printf("\n%s",s);
+          printf("%02x",d->dcb_tc[i]);
+      }
+      printf("\n");
+   }
+   printf("%s } \n",s);
+}
+
+static inline void print_rte_eth_vmdq_rx_conf(int indent, struct rte_eth_vmdq_rx_conf  *d);
+static inline void print_rte_eth_vmdq_rx_conf(int indent, struct rte_eth_vmdq_rx_conf  *d)
+{
+   INDENT(indent);
+
+   printf("%s struct rte_eth_vmdq_rx_conf { \n"              ,s);
+   printf("%s nb_queue_pools:        %d\n"   ,s,d->nb_queue_pools);
+   printf("%s enable_default_pool    0x%02x\n"   ,s,d->enable_default_pool);
+   printf("%s default_pool           0x%02x\n"   ,s,d->default_pool);
+   printf("%s enable_loop_back       0x%02x\n"   ,s,d->enable_loop_back);
+   printf("%s nb_pool_maps           0x%02x\n"   ,s,d->nb_pool_maps);
+   printf("%s rx_mode                0x%08x\n"   ,s,d->rx_mode);
+   printf("%s pool_map    size       0x%02x\n"   ,s,ETH_VMDQ_MAX_VLAN_FILTERS);
+   printf("%s     pool_map[0].vlan_id          0x%04x\n"   ,s,d->pool_map[0].vlan_id);
+   printf("%s     pool_map[0].pools            0x%016lx\n"  ,s,d->pool_map[0].pools);
+   printf("%s } \n",s);
+}
+
+
+
+static inline void print_rte_fdir_conf(int indent, struct rte_fdir_conf  *d);
+static inline void print_rte_fdir_conf(int indent, struct rte_fdir_conf  *d)
+{
+   INDENT(indent);
+
+   printf("%s struct rte_fdir_conf { \n"              ,s);
+   printf("%s mode:             %d\n"   ,s,d->mode);
+   printf("%s pballoc:          %d\n"   ,s,d->pballoc);
+   printf("%s status:           %d\n"   ,s,d->status);
+   printf("%s drop_queue    0x%02x\n"   ,s,d->drop_queue);
+   printf("%s **** NOT FINISHED struct rte_eth_fdir_masks mask;  \n",s);
+   printf("%s **** NOT FINISHED struct rte_eth_fdir_flex_conf flex_conf;  \n",s);
+   printf("%s } \n",s);
+}
+
+static inline void print_rte_intr_conf(int indent, struct rte_intr_conf  *d);
+static inline void print_rte_intr_conf(int indent, struct rte_intr_conf  *d)
+{
+   INDENT(indent);
+
+   printf("%s struct rte_intr_conf { \n"              ,s);
+   printf("%s lsc:        %d\n"   ,s,d->lsc);
+   printf("%s rxq:        %d\n"   ,s,d->rxq);
+   printf("%s rmv:        %d\n"   ,s,d->rmv);
+   printf("%s } \n",s);
+}
+
+
+static inline void print_rte_eth_rss_conf( int indent, struct rte_eth_rss_conf *d);
+static inline void print_rte_eth_rss_conf( int indent, struct rte_eth_rss_conf *d)
+{
+   INDENT(indent);
+
+   printf("%s struct rte_eth_rss_conf { \n"              ,s);
+   printf("%s rss_key:           %p\n"   ,s,d->rss_key);
+   if(d->rss_key != NULL)
+   {
+      int i;
+      for ( i = 0 ; i < 40 ; i++) 
+      { 
+          if( (  i % 20) == 0 ) printf("\n%s",s);
+          printf("%02x",d->rss_key[i]);
+      }
+      printf("\n");
+   }
+   printf("%s rss_key_len:       0x%02x\n"   ,s,d->rss_key_len);
+   printf("%s rss_hf:            0x%016lx\n"   ,s,d->rss_hf);
+   printf("%s } \n",s);
+}
+
+
+
+
+
+
+void print_rte_eth_conf(int indent, struct rte_eth_conf *m );
+void print_rte_eth_conf(int indent, struct rte_eth_conf *m )
+{
+   INDENT(indent);
+
+    printf("%s struct rte_eth_conf { \n"              ,s);
+    printf("%s link_speeds:      %d \n",s,m->link_speeds);  // bitmap of ETH_LINK_SPEED ???
+    print_rte_eth_rxmode(indent+1 , &(m->rxmode));
+    print_rte_eth_txmode(indent+1 , &(m->txmode));
+
+    printf("%s lpbk_mode     %u (0=lpbk disabled) \n",s,m->lpbk_mode);
+   
+
+    print_rte_eth_rss_conf(indent+1 , &(m->rx_adv_conf.rss_conf ));
+    print_rte_eth_vmdq_dcb_conf(indent+1 , &(m->rx_adv_conf.vmdq_dcb_conf ));
+    print_rte_eth_dcb_rx_conf  ( indent+1 , &(m->rx_adv_conf.dcb_rx_conf ));
+    print_rte_eth_vmdq_rx_conf (indent+1 , &(m->rx_adv_conf.vmdq_rx_conf ));
+
+    printf("%s **** NOT FINISHED (****  \n",s);
+ 
+    printf("%s dcb_capability_en:         0x%08x\n"   ,s,m->dcb_capability_en);
+
+
+    print_rte_fdir_conf (indent+1 , &(m->fdir_conf ));
+    print_rte_intr_conf (indent+1 , &(m->intr_conf ));
+
+   printf("%s } \n",s);
+
+}
+
+
+
  
 /*  
  *  dumps the eth_dev_info struct
@@ -412,6 +845,78 @@ static inline void  Print_rte_eth_stats(int indent,uint16_t port_id)
 
 extern  uint32_t enabled_port_mask;
 
+#define RSS_HASH_KEY_LENGTH  1024
+
+// from test_pmd config.c 
+static inline void Print_rss_hash_info( int port_id )
+{
+struct rte_eth_dev_info  dev_info;
+
+struct rte_eth_rss_conf rss_conf = {0};
+uint8_t rss_key[RSS_HASH_KEY_LENGTH];
+uint8_t hash_key_size;
+uint64_t rss_hf;
+uint8_t i;
+int diag;
+
+
+    if ((enabled_port_mask & (1 << port_id)) == 0) {
+            printf("\nPort is  disabled port %d\n", port_id);
+            return; 
+    }
+    rte_eth_dev_info_get(port_id, &dev_info);
+
+    if (dev_info.hash_key_size > 0 &&
+                    dev_info.hash_key_size <= sizeof(rss_key))
+            hash_key_size = dev_info.hash_key_size;
+    else {
+            printf("dev_info did not provide a valid hash key size\n");
+            return;
+    }
+
+        /* Get RSS hash key if asked to display it */
+//        rss_conf.rss_key = (show_rss_key) ? rss_key : NULL;
+        rss_conf.rss_key = rss_key ;
+        rss_conf.rss_key_len = hash_key_size;
+        diag = rte_eth_dev_rss_hash_conf_get(port_id, &rss_conf);
+        if (diag != 0) {
+                switch (diag) {
+                case -ENODEV:
+                        printf("port index %d invalid\n", port_id);
+                        break;
+                case -ENOTSUP:
+                        printf("operation not supported by device\n");
+                        break;
+                default:
+                        printf("operation failed - diag=%d\n", diag);
+                        break;
+                }
+                return;
+        }
+        rss_hf = rss_conf.rss_hf;
+        if (rss_hf == 0) {
+                printf("RSS disabled\n");
+                return;
+        }
+        printf("RSS functions:\n ");
+        for (i = 0; rss_type_table[i].str; i++) {
+                if (rss_hf & rss_type_table[i].rss_type)
+                        printf("%s ", rss_type_table[i].str);
+        }
+        printf("\n");
+//        if (!show_rss_key)
+//                return;
+        printf("RSS key:\n");
+        for (i = 0; i < hash_key_size; i++)
+                printf("%02X", rss_key[i]);
+        printf("\n");
+
+}
+
+
+
+
+
 static inline void
 fs_dump_all_port_info(void)
 {
@@ -431,11 +936,12 @@ struct rte_ether_addr m;
             }
 
             /* init port */
-         printf("%d  Promiscuous  (1 on, 0 off, -1 error)\n",
+         printf(" PortID:  %d) \n",port_id);
+         printf("  %d  Promiscuous  (1 on, 0 off, -1 error)\n",
                                    rte_eth_promiscuous_get(port_id));
-         printf("%d  allmulticast  (1 on, 0 off, -1 error)\n",
+         printf("  %d  allmulticast  (1 on, 0 off, -1 error)\n",
                                         rte_eth_allmulticast_get(port_id));
-         printf("Unicast Mac Address:\n   ");
+         printf("  Unicast Mac Address:\n   ");
          // unicast:
          rte_eth_macaddr_get(port_id,&m);
          PrintMac(port_id,&m);
@@ -444,6 +950,10 @@ struct rte_ether_addr m;
 
          NEXT_COLOR();  
          Print_rte_eth_dev_info( 0,port_id,&dev_info);
+         Print_rss_hash_info(port_id);
+
+
+
          WHITE();
     }
 }
@@ -503,38 +1013,45 @@ static struct rte_ether_addr P5P1 = {
                  .addr_bytes[5]=0x70 ,
                  } ;
 
+static struct rte_ether_addr pcap1 = {
+                 .addr_bytes[0]=0x00 ,  /* msb */
+                 .addr_bytes[1]=0xaa ,
+                 .addr_bytes[2]=0xaa ,
+                 .addr_bytes[3]=0x00 ,
+                 .addr_bytes[4]=0x01 ,
+                 .addr_bytes[5]=0x00 , /* lsb */
+                 } ;
+
+
+
+
 // fs_add_mac_address(qconf->tx_port_id[0]);
 static inline void  
 fs_add_mac_address(int port_id)
 {
        int result;
        char string[32] ={0};
-#if 0
-       struct rte_ether_addr mac_addr;
-       mac_addr.addr_bytes[0]= 0x00;   // msb
-       mac_addr.addr_bytes[1]= 0x01;
-       mac_addr.addr_bytes[2]= 0x02;
-       mac_addr.addr_bytes[3]= 0x03;
-       mac_addr.addr_bytes[4]= 0x04;
-       mac_addr.addr_bytes[5]= 0x05;   // lsb 
+        struct rte_ether_addr mac_addr;
+
+//       memcpy(&mac_addr,&p5p1,sizeof(struct rte_ether_addr));
+
+       memcpy(&mac_addr,&pcap1,sizeof(struct rte_ether_addr));
 
        format_mac_addr(string,&mac_addr);
-       printf("Add Mac Addr: %s  on port %d \n",string,port_id);
-                                        // port, MacAddr, pool`
-        result = rte_eth_dev_mac_addr_add( port_id , &mac_addr ,0);
+       printf("*** Add Mac Addr: %s  on port %d  ***\n",string,port_id);
+       printf("    %sOn Rover:\n",C_GREEN);
+       printf("        - Add Route\n");
+       printf("             ip route add  192.168.10.0/24 dev p5p1\n");
+       printf("        - Add arp\n");
+       printf("             arp -s 192.168.10.12 %s  \n",string);
+       printf("        - To send 1 packet  \n");
+       printf("             ping  192.168.10.12 -c 1  %s\n",C_WHITE);
 
- #else
-       format_mac_addr(string,&P5P1);
-       printf("Add Mac Addr: %s  on port %d \n",string,port_id);
-       printf("  arp -s 192.168.10.11 00:0e:1e:50:f7:71   \n");
-                                        // port, MacAddr, pool`
-        result = rte_eth_dev_mac_addr_add( port_id , &P5P1 ,0);
- 
-#endif 
+       result = rte_eth_dev_mac_addr_add( port_id , &mac_addr ,0);
 
        if ( result != 0)
         {
-            printf("----------  Error when setting add mac address %d\n",result);
+            printf("------ Error calling rte_eth_dev_mac_addr_add(): %d\n",result);
         }
 }
 
@@ -668,6 +1185,7 @@ static inline int fs_id_packet_by_IPv4(int src_dest,uint32_t IPv4,struct rte_mbu
            if(verbose >=  2)
            { 
                printf("%s ether_type: IPV4  0x%04x\n",s,eth_hdr_type);
+               printf("%s looking for IP address:  0x%08x\n",s,IPv4);
            } 
            ipv4_hdr = (struct rte_ipv4_hdr *)l3;
            src_ip = (ipv4_hdr->src_addr);
@@ -687,7 +1205,12 @@ static inline int fs_id_packet_by_IPv4(int src_dest,uint32_t IPv4,struct rte_mbu
        {
            if(verbose >=  2)
            { 
-               printf("%s unrecognized packet type\n",s);
+               printf("%s unrecognized packet type %d (0x%04x)\n",s,eth_hdr_type,eth_hdr_type);
+           }
+           if(verbose >=  3)
+           { 
+              // Print_rte_mbuf_pkt(int indent, struct rte_mbuf *m)
+                Print_rte_mbuf_pkt( 3 , m);
            }
        }
 
@@ -1041,7 +1564,12 @@ n /* Enqueue a single packet, and send burst if queue is filled */
 #endif 
 }
 
+/*static inline void fs_command(struct rte_mbuf *m, int verbose);
+static inline void fs_command(struct rte_mbuf *m, int verbose)
+{
+     uint8_t ptr;
 
-
+}
+*/
 
 #endif

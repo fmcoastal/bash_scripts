@@ -2,9 +2,9 @@
 
 #TARGET=DOUBLE_SHOT
 #TARGET=SINGLE_SHOT
-TARGET=CN83XX
+#TARGET=CN83XX
 #TARGET=CN9130
-#TARGET=CN96XX
+TARGET=CN96XX
 #TARGET=A3900
 
 ######################
@@ -13,7 +13,14 @@ TARGET=CN83XX
 #BASE_DIR=/sdk/SDK19061
 #BASE_DIR=/sdk/SDK190603/SDK10.0_19.06.3-src
 #BASE_DIR=/home/fsmith/marvell/sdk/sdk10_ed1003_with_dpdk/SDK10.0-ED1003-DPDK/sdk
-BASE_DIR=/home/fsmith/marvell/sdk/PR2003
+BASE_DIR=/home/fsmith/marvell/sdk/SDK-10.3.2.0-PR6
+
+
+# BECAUSE engineering keeps changeing the directory structure.
+# in SDK 6.2 moved the "release-out directory down level
+## for  SDK-10.3.2.0-PR6
+BASE_DIR=$BASE_DIR/base_sdk
+
 
 
 
@@ -55,10 +62,12 @@ INVERT=$'\e[7m'
 
 #   banner()
 banner() {
+echo $GREEN
 echo ""
 echo "********"
 echo "* $1"
 echo "********"
+echo $WHITE
 }
 
 
@@ -105,9 +114,7 @@ fi
 
 echo " -----------   WARNING -------------- "
 echo " We will use "
-echo $GREEN
-echo "    sdk:  $BASE_DIR  for $OUTPUT_DIR  "
-echo $WHITE
+echo "    sdk: $GREEN $BASE_DIR $WHITE as path to $GREEN $OUTPUT_DIR $WHITE  "
 echo " ------------------------------------ "
 sleep 5
 
@@ -119,7 +126,10 @@ CURRENT_DIR=$PWD
 banner "change directory to $BASE_DIR/$OUTPUT_DIR"
 pushd $BASE_DIR/$OUTPUT_DIR
 
-banner " Remove any Existing $BOOT_FILES / $LIB_FILES "
+
+
+
+banner " Remove any Existing $BOOT_FILES or $LIB_FILES "
 if [ -f $BOOT_FILES ] ; then
    echo " - found old $BOOT_FILES - Removing"
    rm -rf $BOOT_FILES
@@ -167,16 +177,28 @@ echo $md5sum > "$LIB_FILES".md5
 
 
 if [ $CURRENT_DIR  != $BASE_DIR/$OUTPUT_DIR ] ; then
+
  banner "Transfer files to current directory"
+ 
+ echo " Current directory is:  $BASE_DIR/$OUTPUT_DIR"
+ echo " mv -f $BOOT_FILES  $CURRENT_DIR/. "
  mv -f $BOOT_FILES  $CURRENT_DIR/.
+
+ echo " mv -f "$BOOT_FILES".md5  $CURRENT_DIR/. "
  mv -f "$BOOT_FILES".md5  $CURRENT_DIR/.
+
+ echo " mv -f $LIB_FILES  $CURRENT_DIR/.  " 
  mv -f $LIB_FILES  $CURRENT_DIR/.
+
+ echo " mv -f "$LIB_FILES".md5  $CURRENT_DIR/. " 
  mv -f "$LIB_FILES".md5  $CURRENT_DIR/.
+
 else
  banner "no Transfer needed: current dir is output/images  dir"
 fi
 
 banner "  Remove the temp directory we created  "
+echo "rm -rf $TEMP_DIR"
 rm -rf $TEMP_DIR
 
 banner " Done  "

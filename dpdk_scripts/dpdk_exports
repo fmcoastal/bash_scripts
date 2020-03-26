@@ -56,3 +56,7 @@ echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
 echo ""
 echo "make install T=arm64-thunderx2-linux-gcc"
 
+
+# from dpdk  prog_guide  section 2.1 Developement Environment
+#export RTE_SDK=/home/user/DPDK
+#export RTE_TARGET=x86_64-native-linux-gcc

@@ -6,13 +6,15 @@
 #                            recover / fix the third Partition
 #    Third Partiton > bulk of storage
 
-REL_NAME=SDK-10.1.1-PR1
+REL_NAME=SDK-10.1.1.0
 
 #TARGET_DIR=a80x0_mcbin_single_shot-release-output
 #TARGET_NAME=armada-8040-mcbin-single-shot
 
 TARGET_DIR=a37xx_espressobin_1000_800-release-output
 TARGET_NAME=armada-3720-espressobin
+BASE_DIR=/home/fsmith/marvell/sdk
+
 
 GREEN=$'\e[32m'
 RED=$'\e[31m'
@@ -57,7 +59,7 @@ PARTITION_3="$1"3
   echo  "  First  Partition: $PARTITION_1 "
   echo  "  Second Partition: $PARTITION_2 "
   echo  "  Third  Partition: $PARTITION_3 "
-  echo  "TARGET DIR:    $TARGET_DIR" 
+  echo  "TARGET DIR:    $BASE_DIR/$TARGET_DIR" 
   echo  "TARGET_NAME:   $TARGET_NAME" 
   echo  "BLOCK_DEVICE:  $BLOCK_DEVICE" 
   echo "**"
@@ -84,7 +86,7 @@ if [ "$CHK_MOUNTED" != "" ];then
    exit 1
 fi
 
-pushd  $TARGET_DIR/
+pushd  $BASE_DIR/$REL_NAME/$TARGET_DIR/
    cd images/
    dd if=flash-image.bin of=/dev/sdc1
    mkfs.ext4 /dev/sdc2

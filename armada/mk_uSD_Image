@@ -11,8 +11,13 @@ REL_NAME=SDK-10.1.1.0
 #TARGET_DIR=a80x0_mcbin_single_shot-release-output
 #TARGET_NAME=armada-8040-mcbin-single-shot
 
-TARGET_DIR=a37xx_espressobin_1000_800-release-output
-TARGET_NAME=armada-3720-espressobin
+#TARGET_DIR=a37xx_espressobin_1000_800-release-output
+#TARGET_NAME=armada-3720-espressobin
+
+TARGET_DIR=cn9130-release-output
+TARGET_NAME=cn9130
+
+
 BASE_DIR=/home/fsmith/marvell/sdk
 
 

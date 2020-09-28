@@ -1,12 +1,40 @@
 #!/bin/bash
 
-ISO_IMAGE=ubuntu-18.04.3-server-arm64.iso
-ISO_IMAGE_URL=http://cdimage.ubuntu.com/releases/18.04/release
-
-ROOTFS_DIR=rootfs
-ROOTFS_FILE=rootfs.b2z
-
+# This script downloads the arm version of the ubuntu operating system
+#     and extracts the rootfs to be used with Octeon Processors.
+#     
+# My directory structure for  ubuntu / "to get a rootfs" looks like:
+#
+#      /home/<username>/marvell/ubuntu
+#
+#BASE_DIR=/home/fsmith/marvell/ubuntu
 BASE_DIR=$PWD
+#
+# You may need to go to the ubuntu site ($ISO_IMAGE_URL) to dertermine
+#     what the latest  release of Ubuntu is. UpdatE $ISO_IMAGE to 
+#    refelct the latest 
+#
+ISO_IMAGE=ubuntu-18.04.5-server-arm64.iso
+#ISO_IMAGE=ubuntu-18.04.3-server-arm64.iso
+#ISO_IMAGE=ubuntu-18.04.2-server-arm64.iso
+ISO_IMAGE_URL=http://cdimage.ubuntu.com/releases/18.04/release
+#
+# the script will create a directory ($ROOTFS_DIR) which contains
+#   the ubunto rootfs
+#
+ROOTFS_DIR=ubuntu_rootfs
+#
+#  The script file will compress the \"newly created ubuntu rootfs\". The
+#     name of the new file will be $ROOTFS_FILES
+ROOTFS_FILE=ubuntu_rootfs.b2z
+#
+# I need a temporary directory to decompress the squash_rootfs into. 
+#   Thie direcory will be created and deleted by the script
+MOUNT_DIR=temp_squashfs
+#
+#References:
+#  none
+ 
 
 banner() {
 echo ""
@@ -14,9 +42,6 @@ echo "********"
 echo "* $1"
 echo "********"
 }
-
-MOUNT_DIR=temp
-
 
 #***************
 banner " if $ISO_IMAGE  is not present, then get it.. "
@@ -54,7 +79,6 @@ fi
 #***************
 banner " create working directory :$BASE_DIR/$MOUNT_DIR"
 mkdir -p $BASE_DIR/$MOUNT_DIR
-
 
 
 ##***************

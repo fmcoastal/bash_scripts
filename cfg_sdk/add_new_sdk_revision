@@ -1,0 +1,71 @@
+#!/bin/bash
+# My directory structure for working with multiple SDKs look like:  
+#
+#      /home/<username>/marvell/sdk
+#
+BASE_DIR=/home/fsmith/marvell/sdk
+#
+#   under the sdk folder I have multiple revision of sdks. eg
+# 
+#    /home/<username>/Marvell/sdk/
+#                                |- SDK-10.3.2.1
+#                                |- SDK-10.3.4.0-PR1
+#                                |- SDK-10.3.4.0-PR1
+#                                |
+# this script assumes the directory structure above, and the  tar'ed  SDK 
+#    and tookchain files live in:
+#
+#    /home/<username>/Downloads/$SDK_REVISION/*
+#  
+SDK_REVISION=SDK-10.3.4.0-PR3
+#
+#  To support another device add the device name to the DEVICES list
+#
+# cn96xx  cn83xx cn81xx  cn9130_crb a70x0 a80x0_mcbin
+# a80x0_mcbin_single_shot a37xx_espressobin_1000_800
+#
+#references:
+#
+# https://linuxhint.com/bash_loop_list_strings/
+
+
+# check if the SDK-x-x-x-x already exists.
+if [ -d  $BASE_DIR/$SDK_REVISION ] ; then
+  echo "Directory $BASE_DIR/$SDK_REVISION already exists"
+  echo " exiting"
+  exit
+fi
+
+# crate a target directory
+echo " create  $BASE_DIR/$SDK_REVISION  Directory"
+mkdir -p $BASE_DIR/$SDK_REVISION
+
+echo "transfer the files "
+cp /home/fsmith/Downloads/$SDK_REVISION/*  $BASE_DIR/$SDK_REVISION/.
+
+
+echo "Go to SDK Directory "
+pushd  $BASE_DIR/$SDK_REVISION
+
+echo "Untar the toolchain "
+tar -xvf toolchain.tar.bz2
+
+echo "Untar the sdk  "
+tar -xvf base-$SDK_REVISION.tar.bz2
+
+
+cd sdk-base
+
+for value in $DEVICES
+do
+     echo $value
+     ./scripts/ci/compile.sh -r $SDK_REVISION --config_only $value
+done
+
+echo "you need to go to the .../sdk/$SDK_REVISION/<devie>-release-output and run \"make\" "
+
+popd
+
+echo "== Done =="
+
+

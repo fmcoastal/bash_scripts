@@ -34,6 +34,9 @@ MOUNT_DIR=temp_squashfs
 #
 #References:
 #  none
+
+
+PRINT_MANUAL_INSTURCTIONS=0
  
 
 banner() {
@@ -43,102 +46,157 @@ echo "* $1"
 echo "********"
 }
 
-#***************
-banner " if $ISO_IMAGE  is not present, then get it.. "
-if [ ! -f $BASE_DIR/$ISO_IMAGE ] ; then
-  echo "getting   $ISO_IMAGE_URL/$ISO_IMAGE file"
-  wget $ISO_IMAGE_URL/$ISO_IMAGE
 
-  if [ ! -f $BASE_DIR/$ISO_IMAGE ]; then
-     echo "failed to download $ISO_IMAGE. probably need to fix Iso Image name or download location."
-     exit 2
-     fi
+
+
+if [ "$PRINT_MANUAL_INSTURCTIONS"  == 0 ] ; then
+
+    #***************
+    banner " if $ISO_IMAGE  is not present, then get it.. "
+    if [ ! -f $BASE_DIR/$ISO_IMAGE ] ; then
+        echo "getting   $ISO_IMAGE_URL/$ISO_IMAGE file"
+        wget $ISO_IMAGE_URL/$ISO_IMAGE
+   
+        if [ ! -f $BASE_DIR/$ISO_IMAGE ]; then
+            echo "failed to download $ISO_IMAGE. probably need to fix Iso Image name or download location."
+            exit 2
+        fi
+     else
+        echo " -- found $BASE_DIR/$ISO_IMAGE"
+    fi
+    
+    #***************
+    # banner " Must be root from here out "
+    usrname=$(whoami)
+    if [ $usrname != "root" ] ; then
+        echo "Need to be root.  Exiting script"
+        exit 1
+    fi
+    
+    #***************
+    # the unsquash below requres the directory to not exist
+    banner " Final rootfs directory :$BASE_DIR/$ROOTFS_DIR must not exist. delete if present"
+    if [ -d $BASE_DIR/$ROOTFS_DIR ] ; then
+        echo " removing pre-existing $BASE_DIR/$ROOTFS_DIR "
+        rm -rf $BASE_DIR/$ROOTFS_DIR
+        sync
+    fi
+    
+    #***************
+    banner " create working directory :$BASE_DIR/$MOUNT_DIR"
+    mkdir -p $BASE_DIR/$MOUNT_DIR
+    if [ ! -d $BASE_DIR/$MOUNT__DIR ] ; then
+        echo " unable to create directory:  $BASE_DIR/$MOUNT_DIR "
+        rm -rf $BASE_DIR/$ROOTFS_DIR
+        exit 2
+    fi
+    
+    ##***************
+    ##check if file is already mounted. if it is, unmount it
+    #test=mount | grep $ISO_IMAGE
+    #if [ -z "$test" ] ; then
+    #  echo " found ISO already mounted. Lets unmount it!"
+    #  umount $BASE_DIR/$MOUNT_DIR
+    #fi
+    
+    banner " Mount the Iso Image"
+    mount -o loop -r $BASE_DIR/$ISO_IMAGE $BASE_DIR/$MOUNT_DIR
+    
+    #let everyting catch up
+    sync;
+    
+    #echo $BASE_DIR/$ROOTFS_DIR
+    #***************
+    banner " unsquash the file system"
+    sudo unsquashfs -d $BASE_DIR/$ROOTFS_DIR $BASE_DIR/$MOUNT_DIR/install/filesystem.squashfs
+    
+    #***************
+    banner " unmount the file system"
+    umount $BASE_DIR/$MOUNT_DIR
+    rm -rf  $BASE_DIR/$MOUNT_DIR
+    
+    #***************
+    banner " our file system"
+    ls $BASE_DIR/$ROOTFS_DIR
+    
+    #***********************
+    banner "Modify the passwd file to remove the root login password"
+    echo edit $BASE_DIR/$ROOTFS_DIR/etc/passwd
+    echo change:
+    echo root:x:0:0:root:/root:/bin/bash
+    echo to:
+    echo root::0:0:root:/root:/bin/bash
+    
+    banner "old"
+    cat $BASE_DIR/$ROOTFS_DIR/etc/passwd
+    banner "new"
+    sed -i 's/root:x:0:0:root:/root::0:0:root:/g' $BASE_DIR/$ROOTFS_DIR/etc/passwd
+    cat $BASE_DIR/$ROOTFS_DIR/etc/passwd
+    
+    echo "To login:"
+    echo " U: root"
+    echo " PW: "
+    echo "      - no password set for root - "
+    sleep 5
+    
+    banner "Compress/Tar the rootfs to $ROOTFS_FILE"
+    sleep 3
+    
+    tar -cvjf $ROOTFS_FILE --directory $ROOTFS_DIR .
+    
+    ls -la $BASE_DIR
+    
+    banner "done"
+
 else
-     echo " -- found $BASE_DIR/$ISO_IMAGE"
+
+    echo "##########################################################################"
+    echo "##  Manual Instructions"
+    echo "##"
+    
+    echo "# Get Arm based Iso Image of the Ubuntu Rootfs/ISO image you want"
+    echo "#"
+    echo "# You may need to go to Ubuntu and check on revision of latest Ubuntu-xxx-server-arm64.iso"
+    echo "#"
+    echo "     wget http://cdimage.ubuntu.com/releases/18.04/release/ubuntu-18.04.4-server-arm64.iso"
+    echo "#"
+    echo "# Switch to root"
+    echo "#"
+    echo "     su root"
+    echo "#"
+    echo "# Create a temporary directory"
+    echo "#"
+    echo "     mkdir temp"
+    echo "#"
+    echo "# Mount the Iso image to the Temp directory"
+    echo "#"
+    echo "     mount -o loop -r ./ubuntu-18.04.4-server-arm64.iso   ./temp"
+    echo "#"
+    echo "# This command will create the \"ubuntu_rootfs\" directory and \"unsquash\" the filesystemi"
+    echo "#"
+    echo "     unsquashfs -d ubuntu_rootfs  ./temp/install/filesystem.squashfs"
+    echo "#"
+    echo "# Do not need \"temp\" directory anymore  -- cleanup"
+    echo "#"
+    echo "     umount temp"
+    echo "     rm -rf temp"
+    echo "#"
+    echo "# Remove the password for \"root\" from the ubuntu rootfs"
+    echo "#    Edit ./ubuntu_rootfs/etc/passwd"
+    echo "#       change:"
+    echo "#          root:x:0:0:root:/root:/bin/bash"
+    echo "#       to:"
+    echo "#          root::0:0:root:/root:/bin/bash"
+    echo "#"
+    echo "# To login:"
+    echo "#  U: root"
+    echo "#  PW: "
+    echo "#       - no password set for root - "
+    echo "#"
+    echo "# tar up your rootfs for transfer to you  CN91 based System"
+    echo "#"
+    echo "     tar -cvjf ubuntu_rootfs.b2z --directory ubunt_rootfs ."
+    echo "#"
+    echo "#  Done! "
+
 fi
-
-
-#***************
-# banner " Must be root from here out "
-usrname=$(whoami)
-if [ $usrname != "root" ] ; then
-   echo "Need to be root.  Exiting script"
-   exit 1
-fi
-
-#***************
-# the unsquash below requres the directory to not exist
-banner " Final rootfs directory :$BASE_DIR/$ROOTFS_DIR must not exist. delete if present"
-if [ -d $BASE_DIR/$ROOTFS_DIR ] ; then
-   echo " removing pre-existing $BASE_DIR/$ROOTFS_DIR "
-   rm -rf $BASE_DIR/$ROOTFS_DIR
-   sync
-fi
-
-
-#***************
-banner " create working directory :$BASE_DIR/$MOUNT_DIR"
-mkdir -p $BASE_DIR/$MOUNT_DIR
-
-
-##***************
-##check if file is already mounted. if it is, unmount it
-#test=mount | grep $ISO_IMAGE
-#if [ -z "$test" ] ; then
-#  echo " found ISO already mounted. Lets unmount it!"
-#  umount $BASE_DIR/$MOUNT_DIR
-#fi
-
-banner " Mount the Iso Image"
-mount -o loop -r $BASE_DIR/$ISO_IMAGE $BASE_DIR/$MOUNT_DIR
-
-#let everyting catch up
-sync;
-
-#echo $BASE_DIR/$ROOTFS_DIR
-#***************
-banner " unsquash the file system"
-sudo unsquashfs -d $BASE_DIR/$ROOTFS_DIR $BASE_DIR/$MOUNT_DIR/install/filesystem.squashfs
-
-
-#***************
-banner " unmount the file system"
-umount $BASE_DIR/$MOUNT_DIR
-rm -rf  $BASE_DIR/$MOUNT_DIR
-
-
-#***************
-banner " our file system"
-ls $BASE_DIR/$ROOTFS_DIR
-
-
-#***********************
-banner "Modify the passwd file to remove the root login password"
-echo edit $BASE_DIR/$ROOTFS_DIR/etc/passwd
-echo change:
-echo root:x:0:0:root:/root:/bin/bash
-echo to:
-echo root::0:0:root:/root:/bin/bash
-
-banner "old"
-cat $BASE_DIR/$ROOTFS_DIR/etc/passwd
-banner "new"
-sed -i 's/root:x:0:0:root:/root::0:0:root:/g' $BASE_DIR/$ROOTFS_DIR/etc/passwd
-cat $BASE_DIR/$ROOTFS_DIR/etc/passwd
-
-echo "To login:"
-echo " U: root"
-echo " PW: "
-echo "      - no password set for root - "
-sleep 5
-
-banner "Compress/Tar the rootfs to $ROOTFS_FILE"
-sleep 3
-
-tar -cvjf $ROOTFS_FILE --directory $ROOTFS_DIR .
-
-ls -la $BASE_DIR
-
-banner "done"
-
-

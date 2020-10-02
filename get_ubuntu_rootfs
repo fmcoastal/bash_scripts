@@ -26,7 +26,7 @@ ROOTFS_DIR=ubuntu_rootfs
 #
 #  The script file will compress the \"newly created ubuntu rootfs\". The
 #     name of the new file will be $ROOTFS_FILES
-ROOTFS_FILE=ubuntu_rootfs.b2z
+ROOTFS_FILE=ubuntu_rootfs.bz2
 #
 # I need a temporary directory to decompress the squash_rootfs into. 
 #   Thie direcory will be created and deleted by the script
